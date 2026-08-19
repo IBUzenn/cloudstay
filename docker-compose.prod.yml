@@ -1,0 +1,96 @@
+# =============================================================
+# CloudStay — Production Docker Compose
+# File: docker-compose.prod.yml
+#
+# Differences from docker-compose.yml (local dev):
+#   - NO mysql service (replaced by Amazon RDS)
+#   - Frontend uses Dockerfile.prod + nginx.prod.conf (proxies /api)
+#   - VITE_API_BASE_URL=/api (Nginx proxies to backend container)
+#   - Only port 80 exposed publicly (no :5000 or :5173 publicly needed)
+#   - Secrets loaded from .env on EC2 (never committed)
+#
+# Usage on EC2:
+#   docker compose -f docker-compose.prod.yml build
+#   docker compose -f docker-compose.prod.yml up -d
+#   docker compose -f docker-compose.prod.yml ps
+#   docker compose -f docker-compose.prod.yml logs backend
+# =============================================================
+
+services:
+
+  # ── Backend (Node.js / Express) ──────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cloudstay-backend
+    restart: unless-stopped
+
+    environment:
+      NODE_ENV:   production
+      PORT:       5000
+
+      # ── Database — RDS endpoint (set in EC2 .env) ──────────
+      DB_HOST:     ${DB_HOST}
+      DB_PORT:     ${DB_PORT:-3306}
+      DB_NAME:     ${DB_NAME:-cloudstay}
+      DB_USER:     ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_POOL_MIN: 2
+      DB_POOL_MAX: 10
+
+      # ── JWT secrets (set in EC2 .env) ──────────────────────
+      JWT_SECRET:             ${JWT_SECRET}
+      JWT_REFRESH_SECRET:     ${JWT_REFRESH_SECRET}
+      JWT_EXPIRES_IN:         ${JWT_EXPIRES_IN:-1h}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+
+      # ── CORS — must match the public EC2 IP/domain ─────────
+      CORS_ORIGIN: ${CORS_ORIGIN}
+
+      # ── Logging ────────────────────────────────────────────
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+
+      # ── AWS — credentials from EC2 instance role ───────────
+      # No AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY needed.
+      # The AWS SDK picks up credentials from the EC2 IAM role
+      # via the instance metadata service automatically.
+      AWS_REGION:    ${AWS_REGION:-ap-southeast-1}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+
+    # ── Do NOT expose 5000 to public internet in production ──
+    # Nginx (frontend container) proxies /api to backend:5000
+    # using Docker internal networking.
+    expose:
+      - "5000"
+
+    networks:
+      - cloudstay-net
+
+  # ── Frontend (React/Vite → Nginx with API proxy) ─────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        # /api is a relative path — browser sends to same host:port
+        # Nginx receives it and proxies internally to backend:5000
+        VITE_API_BASE_URL: /api
+    container_name: cloudstay-frontend
+    restart: unless-stopped
+
+    ports:
+      # Only port 80 is exposed to the internet
+      - "80:80"
+
+    depends_on:
+      - backend
+
+    networks:
+      - cloudstay-net
+
+# ── Networks ──────────────────────────────────────────────────
+networks:
+  cloudstay-net:
+    name: cloudstay-prod-network
+    driver: bridge
