@@ -22,6 +22,14 @@ const { errorHandler } = require('../middleware/error.middleware');
 
 const app = express();
 
+// ─── Trust Proxy ──────────────────────────────────────────────
+// Required when Express runs behind Nginx (production).
+// Allows express-rate-limit to read X-Forwarded-For correctly
+// and Nginx to pass the real client IP through the proxy.
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // ─── Security Headers ────────────────────────────────────────
 app.use(helmet());
 
