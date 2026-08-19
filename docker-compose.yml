@@ -1,0 +1,148 @@
+# =============================================================
+# CloudStay — Docker Compose
+# Three services: mysql, backend, frontend
+#
+# Communication flow:
+#   Browser → localhost:5173 (nginx, host port)
+#   Browser → localhost:5000/api (backend, host port)
+#   backend  → mysql:3306 (Docker internal network)
+#
+# IMPORTANT: DB_HOST must be "mysql" (the service name),
+# NOT "localhost" — inside Docker, localhost refers to
+# the container itself, not the MySQL container.
+#
+# Usage:
+#   docker compose up --build          # start everything
+#   docker compose down -v             # stop + delete volumes (DB reset)
+#   docker compose logs -f backend     # follow backend logs
+# =============================================================
+
+services:
+
+  # ── MySQL 8.0 ───────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: cloudstay-mysql
+    restart: unless-stopped
+
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-cloudstay_root_2024}
+      MYSQL_DATABASE:      cloudstay
+      # Using root user (no separate DB user needed for dev)
+      # For production, create a least-privilege user
+
+    ports:
+      # Expose to host for DB management tools (e.g., MySQL Workbench)
+      - "3306:3306"
+
+    volumes:
+      # Persistent named volume — data survives container restarts
+      - mysql_data:/var/lib/mysql
+
+      # Database initialization scripts — run ONLY on first volume creation.
+      # MySQL runs scripts in alphabetical order, so prefix files with numbers.
+      # To reset: docker compose down -v && docker compose up --build
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/procedures.sql:/docker-entrypoint-initdb.d/02-procedures.sql:ro
+      - ./database/seeds.sql:/docker-entrypoint-initdb.d/03-seeds.sql:ro
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-cloudstay_root_2024}"]
+      interval: 10s
+      timeout:  5s
+      retries:  10
+      start_period: 30s
+
+    networks:
+      - cloudstay-net
+
+  # ── Backend (Node.js / Express) ──────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cloudstay-backend
+    restart: unless-stopped
+
+    environment:
+      NODE_ENV:    production
+      PORT:        5000
+
+      # ── Database — CRITICAL: use service name "mysql", not "localhost" ──
+      DB_HOST:     mysql
+      DB_PORT:     3306
+      DB_NAME:     cloudstay
+      DB_USER:     root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:-cloudstay_root_2024}
+      DB_POOL_MIN: 2
+      DB_POOL_MAX: 10
+
+      # ── JWT secrets — override via .env file ──────────────────
+      JWT_SECRET:              ${JWT_SECRET:-change_me_in_production_jwt_secret_256bit}
+      JWT_REFRESH_SECRET:      ${JWT_REFRESH_SECRET:-change_me_in_production_refresh_secret_256bit}
+      JWT_EXPIRES_IN:          ${JWT_EXPIRES_IN:-1h}
+      JWT_REFRESH_EXPIRES_IN:  ${JWT_REFRESH_EXPIRES_IN:-7d}
+
+      # ── CORS ─────────────────────────────────────────────────
+      # Browser talks to localhost:5173 (frontend) and localhost:5000 (backend)
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+
+      # ── Logging ───────────────────────────────────────────────
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+
+      # ── AWS (optional — S3 upload) ────────────────────────────
+      # Leave blank locally if S3 is not configured.
+      # The SDK gracefully handles missing credentials.
+      AWS_REGION:            ${AWS_REGION:-ap-southeast-1}
+      AWS_ACCESS_KEY_ID:     ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_S3_BUCKET:         ${AWS_S3_BUCKET:-cloudstay-receipts}
+
+    ports:
+      - "5000:5000"
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+    networks:
+      - cloudstay-net
+
+  # ── Frontend (React/Vite → Nginx) ────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # VITE variables are baked in at BUILD TIME.
+        # The browser (running on the host) must use localhost:5000,
+        # NOT backend:5000 — Docker service names are not resolvable
+        # outside the Docker network (i.e., not in the user's browser).
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:5000/api}
+    container_name: cloudstay-frontend
+    restart: unless-stopped
+
+    ports:
+      # Nginx serves on port 80 internally; mapped to 5173 on host
+      # to match the expected local development URL
+      - "5173:80"
+
+    depends_on:
+      - backend
+
+    networks:
+      - cloudstay-net
+
+# ── Volumes ───────────────────────────────────────────────────
+volumes:
+  mysql_data:
+    name: cloudstay_mysql_data
+    # To completely reset the database:
+    #   docker compose down -v
+    #   docker compose up --build
+
+# ── Networks ──────────────────────────────────────────────────
+networks:
+  cloudstay-net:
+    name: cloudstay-network
+    driver: bridge
