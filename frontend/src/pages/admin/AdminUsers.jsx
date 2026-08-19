@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../api';
-import { Users, Search, Shield, Ban } from 'lucide-react';
+import { Users, Search, Shield, Ban, CheckCircle2, UserCheck, ShieldAlert } from 'lucide-react';
 import Spinner from '../../components/common/Spinner';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import toast from 'react-hot-toast';
@@ -11,7 +11,7 @@ export default function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   
-  const [targetUser, setTargetUser] = useState(null); // User to toggle
+  const [targetUser, setTargetUser] = useState(null); // User object to toggle
   const [toggling, setToggling] = useState(false);
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function AdminUsers() {
     try {
       const res = await adminApi.getUsers();
       setUsers(res.data.data || []);
-    } catch {
+    } catch (err) {
       setUsers([]);
     } finally {
       setLoading(false);
@@ -31,12 +31,13 @@ export default function AdminUsers() {
   };
 
   const handleToggle = async () => {
+    if (!targetUser) return;
     setToggling(true);
     try {
       await adminApi.toggleUserStatus(targetUser.id, !targetUser.is_active);
-      toast.success(`User ${targetUser.is_active ? 'deactivated' : 'activated'} successfully.`);
+      toast.success(`User ${targetUser.name} ${targetUser.is_active ? 'deactivated' : 'activated'} successfully.`);
       setTargetUser(null);
-      fetchUsers(); // Refresh list
+      fetchUsers();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to update user status.');
     } finally {
@@ -44,76 +45,104 @@ export default function AdminUsers() {
     }
   };
 
-  const filteredUsers = users.filter(u => 
-    u.name.toLowerCase().includes(search.toLowerCase()) || 
-    u.email.toLowerCase().includes(search.toLowerCase()) ||
-    (u.student_id && u.student_id.toLowerCase().includes(search.toLowerCase()))
-  );
+  const filteredUsers = users.filter((u) => {
+    if (!search.trim()) return true;
+    const term = search.toLowerCase();
+    return (
+      (u.name && u.name.toLowerCase().includes(term)) ||
+      (u.email && u.email.toLowerCase().includes(term)) ||
+      (u.student_id && u.student_id.toLowerCase().includes(term)) ||
+      (u.role && u.role.toLowerCase().includes(term))
+    );
+  });
 
   return (
     <div className="page-wrapper">
       <div className="container">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-          <h1>Manage Users</h1>
-          <div className="search-bar" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--surface-2)', padding: '0.5rem 1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--glass-border)' }}>
-            <Search size={16} color="var(--text-muted)" />
-            <input 
-              type="text" 
-              placeholder="Search users..." 
-              value={search} 
-              onChange={e => setSearch(e.target.value)}
-              style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', outline: 'none' }}
+        {/* Header Bar */}
+        <div className="users-header-bar fade-in">
+          <div>
+            <h1>User Account Management</h1>
+            <p className="subtext">
+              Inspect student and staff accounts, verify roles, and toggle account activation status
+            </p>
+          </div>
+
+          <div className="search-input-wrapper">
+            <Search size={16} className="search-icon" />
+            <input
+              type="text"
+              placeholder="Search by name, email or ID..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="form-input search-field"
             />
           </div>
         </div>
 
-        {loading ? <Spinner /> : filteredUsers.length === 0 ? (
-          <div className="card empty-state">
-            <Users size={48} color="var(--text-muted)" />
-            <p>No users found.</p>
+        {loading ? (
+          <Spinner label="Fetching user account list..." />
+        ) : filteredUsers.length === 0 ? (
+          <div className="card empty-state fade-in">
+            <Users size={52} />
+            <h3>No Users Found</h3>
+            <p>No account records match your search criteria.</p>
+            {search && (
+              <button className="btn btn-outline btn-sm" onClick={() => setSearch('')}>
+                Clear Search
+              </button>
+            )}
           </div>
         ) : (
-          <div className="table-wrapper">
+          <div className="table-wrapper fade-in">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Joined</th>
+                  <th>User Identity</th>
+                  <th>Email Address</th>
+                  <th>System Role</th>
+                  <th>Registered On</th>
                   <th>Status</th>
-                  <th>Actions</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map(u => (
+                {filteredUsers.map((u) => (
                   <tr key={u.id}>
                     <td>
-                      <div style={{ fontWeight: 500 }}>{u.name}</div>
-                      {u.student_id && <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{u.student_id}</div>}
+                      <div className="user-name-cell">
+                        <span className="name-text">{u.name}</span>
+                        {u.student_id && (
+                          <span className="student-id-sub">{u.student_id}</span>
+                        )}
+                      </div>
                     </td>
-                    <td>{u.email}</td>
+                    <td className="email-cell">{u.email}</td>
                     <td>
-                      <span className="badge" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }}>
+                      <span className={`role-badge role-${u.role}`}>
                         {u.role}
                       </span>
                     </td>
-                    <td style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{formatDate(u.created_at)}</td>
+                    <td className="date-cell">{formatDate(u.created_at)}</td>
                     <td>
                       <span className={`badge ${u.is_active ? 'badge-approved' : 'badge-rejected'}`}>
-                        {u.is_active ? 'Active' : 'Inactive'}
+                        <span className="status-dot" />
+                        {u.is_active ? 'Active' : 'Deactivated'}
                       </span>
                     </td>
                     <td>
-                      {u.role !== 'admin' && (
-                        <button 
-                          className={`btn btn-sm ${u.is_active ? 'btn-danger' : 'btn-primary'}`}
-                          onClick={() => setTargetUser(u)}
-                        >
-                          {u.is_active ? <Ban size={14}/> : <Shield size={14}/>}
-                          {u.is_active ? 'Deactivate' : 'Activate'}
-                        </button>
-                      )}
+                      <div className="action-cell">
+                        {u.role !== 'admin' && (
+                          <button
+                            type="button"
+                            className={`btn btn-sm ${u.is_active ? 'btn-danger' : 'btn-success'}`}
+                            onClick={() => setTargetUser(u)}
+                          >
+                            {u.is_active ? <Ban size={14} /> : <UserCheck size={14} />}
+                            {u.is_active ? 'Deactivate' : 'Activate'}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -125,15 +154,114 @@ export default function AdminUsers() {
 
       {targetUser && (
         <ConfirmModal
-          title={targetUser.is_active ? 'Deactivate User' : 'Activate User'}
-          message={`Are you sure you want to ${targetUser.is_active ? 'deactivate' : 'activate'} ${targetUser.name}?`}
-          confirmLabel={targetUser.is_active ? 'Deactivate' : 'Activate'}
-          confirmClass={targetUser.is_active ? 'btn-danger' : 'btn-primary'}
+          isOpen={!!targetUser}
+          title={targetUser.is_active ? 'Deactivate User Account' : 'Reactivate User Account'}
+          message={`Are you sure you want to ${targetUser.is_active ? 'deactivate' : 'reactivate'} the account for ${targetUser.name}?`}
+          confirmText={targetUser.is_active ? 'Deactivate Account' : 'Reactivate Account'}
+          variant={targetUser.is_active ? 'danger' : 'success'}
           loading={toggling}
           onCancel={() => setTargetUser(null)}
           onConfirm={handleToggle}
         />
       )}
+
+      <style>{`
+        .users-header-bar {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          margin-bottom: 2rem;
+          padding-bottom: 1.25rem;
+          border-bottom: 1px solid var(--border-subtle);
+          flex-wrap: wrap;
+          gap: 1rem;
+        }
+
+        .subtext {
+          color: var(--slate-400);
+          font-size: 0.9rem;
+          margin-top: 0.2rem;
+        }
+
+        .search-input-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+
+        .search-icon {
+          position: absolute;
+          left: 0.9rem;
+          color: var(--slate-400);
+          pointer-events: none;
+        }
+
+        .search-field {
+          padding-left: 2.5rem;
+          font-size: 0.875rem;
+          width: 260px;
+        }
+
+        .user-name-cell {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .name-text {
+          font-weight: 600;
+          color: var(--text-primary);
+        }
+
+        .student-id-sub {
+          font-size: 0.75rem;
+          font-family: monospace;
+          color: var(--slate-400);
+        }
+
+        .email-cell {
+          color: var(--slate-300);
+          font-size: 0.875rem;
+        }
+
+        .role-badge {
+          display: inline-flex;
+          align-items: center;
+          padding: 0.2rem 0.6rem;
+          border-radius: var(--radius-sm);
+          font-size: 0.75rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+
+        .role-admin {
+          background: rgba(168, 85, 247, 0.15);
+          border: 1px solid rgba(168, 85, 247, 0.3);
+          color: #c084fc;
+        }
+
+        .role-manager {
+          background: rgba(59, 130, 246, 0.15);
+          border: 1px solid rgba(59, 130, 246, 0.3);
+          color: #60a5fa;
+        }
+
+        .role-student {
+          background: rgba(100, 116, 139, 0.15);
+          border: 1px solid rgba(100, 116, 139, 0.3);
+          color: var(--slate-300);
+        }
+
+        .date-cell {
+          font-size: 0.825rem;
+          color: var(--slate-400);
+        }
+
+        .action-cell {
+          display: flex;
+          justify-content: flex-end;
+        }
+      `}</style>
     </div>
   );
 }

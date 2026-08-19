@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Upload, Clock, CheckCircle2, XCircle, Plus } from 'lucide-react';
+import { BookOpen, Upload, Clock, CheckCircle2, XCircle, Plus, ChevronRight, Eye } from 'lucide-react';
 import { bookingApi } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { formatDate, formatCurrency, getInitials } from '../../utils/helpers';
@@ -13,9 +13,10 @@ export default function StudentDashboard() {
   const [loading,  setLoading]  = useState(true);
 
   useEffect(() => {
-    bookingApi.getMyBookings().then((res) => {
-      setBookings(res.data.data || []);
-    }).catch(() => setBookings([])).finally(() => setLoading(false));
+    bookingApi.getMyBookings()
+      .then((res) => setBookings(res.data.data || []))
+      .catch(() => setBookings([]))
+      .finally(() => setLoading(false));
   }, []);
 
   const stats = {
@@ -28,76 +29,109 @@ export default function StudentDashboard() {
   return (
     <div className="page-wrapper">
       <div className="container">
-        {/* Welcome */}
-        <div className="dash-welcome fade-in">
-          <div className="welcome-avatar">{getInitials(user?.name)}</div>
-          <div>
-            <h1>Welcome back, <span className="text-gradient">{user?.name.split(' ')[0]}</span></h1>
-            <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-              {user?.email} · Student ID: {user?.student_id || '—'}
+        {/* Student Profile Hero */}
+        <div className="dash-welcome card fade-in">
+          <div className="welcome-avatar-container">
+            <div className="welcome-avatar">
+              {getInitials(user?.name)}
+            </div>
+          </div>
+
+          <div className="welcome-text-group">
+            <h1>
+              Welcome back, <span className="text-gradient">{user?.name.split(' ')[0]}</span>
+            </h1>
+            <p className="welcome-meta">
+              <span>{user?.email}</span>
+              <span className="meta-dot">•</span>
+              <span className="student-id-tag">Student ID: {user?.student_id || 'STU-OFFICIAL'}</span>
             </p>
           </div>
-          <Link to="/hostels" className="btn btn-primary btn-sm" style={{ marginLeft: 'auto' }}>
-            <Plus size={14}/> Book a Room
+
+          <Link to="/hostels" className="btn btn-primary btn-md book-cta-btn">
+            <Plus size={16} /> Book a Room
           </Link>
         </div>
 
-        {/* Stats */}
-        <div className="grid-4" style={{ marginBottom: '2rem' }}>
+        {/* KPI Grid */}
+        <div className="grid-4 stats-grid">
           {[
-            { label: 'Total Bookings',  value: stats.total,    color: 'var(--brand-400)',  icon: <BookOpen size={20}/> },
-            { label: 'Pending Review',  value: stats.pending,  color: 'var(--warn-400)',   icon: <Clock size={20}/> },
-            { label: 'Approved',        value: stats.approved, color: 'var(--accent-400)', icon: <CheckCircle2 size={20}/> },
-            { label: 'Rejected',        value: stats.rejected, color: 'var(--error-400)',  icon: <XCircle size={20}/> },
+            { label: 'Total Bookings',  value: stats.total,    color: 'var(--brand-400)',  icon: <BookOpen size={20} /> },
+            { label: 'Pending Review',  value: stats.pending,  color: 'var(--warn-400)',   icon: <Clock size={20} /> },
+            { label: 'Approved',        value: stats.approved, color: 'var(--accent-400)', icon: <CheckCircle2 size={20} /> },
+            { label: 'Rejected',        value: stats.rejected, color: 'var(--error-400)',  icon: <XCircle size={20} /> },
           ].map((s) => (
             <div key={s.label} className="stat-card">
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'0.75rem' }}>
-                <div className="stat-label">{s.label}</div>
-                <div style={{ color: s.color, opacity: 0.7 }}>{s.icon}</div>
+              <div className="stat-header">
+                <span className="stat-label">{s.label}</span>
+                <div className="stat-icon" style={{ color: s.color }}>
+                  {s.icon}
+                </div>
               </div>
-              <div className="stat-value" style={{ color: s.color }}>{s.value}</div>
+              <div className="stat-value" style={{ color: s.color }}>
+                {s.value}
+              </div>
             </div>
           ))}
         </div>
 
-        {/* Bookings list */}
-        <h2 style={{ marginBottom: '1rem' }}>My Bookings</h2>
-        {loading ? <Spinner /> : bookings.length === 0 ? (
-          <div className="empty-state card">
-            <BookOpen size={48} />
-            <h3>No bookings yet</h3>
-            <p>Browse hostels and book your room.</p>
-            <Link to="/hostels" className="btn btn-primary">Browse Hostels</Link>
+        {/* Bookings Section */}
+        <div className="dashboard-section-header">
+          <div>
+            <h2>My Hostel Bookings</h2>
+            <p className="section-subtext">Review allocation status, payment receipts, and booking details</p>
+          </div>
+        </div>
+
+        {loading ? (
+          <Spinner label="Loading your booking history..." />
+        ) : bookings.length === 0 ? (
+          <div className="empty-state card fade-in">
+            <BookOpen size={56} />
+            <h3>No Active Bookings</h3>
+            <p>You haven't reserved any hostel rooms for the upcoming semester yet.</p>
+            <Link to="/hostels" className="btn btn-primary">
+              <Plus size={16} /> Browse Available Hostels
+            </Link>
           </div>
         ) : (
-          <div className="table-wrapper">
+          <div className="table-wrapper fade-in">
             <table className="table">
               <thead>
                 <tr>
                   <th>Booking ID</th>
                   <th>Hostel</th>
-                  <th>Room</th>
+                  <th>Room Type</th>
                   <th>Check-In</th>
-                  <th>Price</th>
+                  <th>Semester Price</th>
                   <th>Status</th>
-                  <th>Actions</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {bookings.map((b) => (
                   <tr key={b.id}>
-                    <td style={{ color:'var(--text-muted)', fontFamily:'monospace' }}>#{b.id}</td>
-                    <td style={{ fontWeight: 500 }}>{b.hostel_name}</td>
-                    <td>{b.room_number} <span style={{ color:'var(--text-muted)', fontSize:'0.75rem' }}>({b.room_type})</span></td>
-                    <td style={{ color:'var(--text-secondary)' }}>{formatDate(b.check_in_date)}</td>
-                    <td style={{ color:'var(--accent-400)', fontWeight:600 }}>{formatCurrency(b.price_per_semester)}</td>
-                    <td><StatusBadge status={b.status} /></td>
+                    <td className="booking-id-cell">#{b.id}</td>
+                    <td className="hostel-name-cell">{b.hostel_name}</td>
                     <td>
-                      <div style={{ display:'flex', gap:'0.5rem' }}>
-                        <Link to={`/bookings/${b.id}`} className="btn btn-outline btn-sm">View</Link>
+                      <div className="room-info-cell">
+                        <span>Room {b.room_number}</span>
+                        <span className="room-subtag">{b.room_type}</span>
+                      </div>
+                    </td>
+                    <td className="date-cell">{formatDate(b.check_in_date)}</td>
+                    <td className="price-cell">{formatCurrency(b.price_per_semester)}</td>
+                    <td>
+                      <StatusBadge status={b.status} />
+                    </td>
+                    <td>
+                      <div className="action-buttons-group">
+                        <Link to={`/bookings/${b.id}`} className="btn btn-outline btn-sm">
+                          <Eye size={14} /> Details
+                        </Link>
                         {b.status === 'approved' && !b.receipt_url && (
                           <Link to={`/bookings/${b.id}/upload`} className="btn btn-primary btn-sm">
-                            <Upload size={12}/> Receipt
+                            <Upload size={14} /> Upload Receipt
                           </Link>
                         )}
                       </div>
@@ -111,8 +145,129 @@ export default function StudentDashboard() {
       </div>
 
       <style>{`
-        .dash-welcome { display: flex; align-items: center; gap: 1.25rem; margin-bottom: 2rem; flex-wrap: wrap; }
-        .welcome-avatar { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, var(--brand-500), #a78bfa); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+        .dash-welcome {
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+          padding: 2rem;
+          margin-bottom: 2.5rem;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .welcome-avatar-container {
+          flex-shrink: 0;
+        }
+
+        .welcome-avatar {
+          width: 64px;
+          height: 64px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, var(--brand-500), var(--accent-500));
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.3rem;
+          font-weight: 800;
+          color: #ffffff;
+          box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .welcome-text-group {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .welcome-meta {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.875rem;
+          color: var(--slate-400);
+          flex-wrap: wrap;
+        }
+
+        .meta-dot { color: var(--slate-600); }
+
+        .student-id-tag {
+          font-family: monospace;
+          color: var(--brand-300);
+          background: rgba(99, 102, 241, 0.1);
+          padding: 0.1rem 0.4rem;
+          border-radius: var(--radius-xs);
+          border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .book-cta-btn {
+          margin-left: auto;
+          flex-shrink: 0;
+        }
+
+        .stats-grid {
+          margin-bottom: 3rem;
+        }
+
+        .dashboard-section-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          margin-bottom: 1.25rem;
+        }
+
+        .section-subtext {
+          font-size: 0.875rem;
+          color: var(--slate-400);
+          margin-top: 0.2rem;
+        }
+
+        .booking-id-cell {
+          font-family: monospace;
+          font-weight: 600;
+          color: var(--brand-400);
+        }
+
+        .hostel-name-cell {
+          font-weight: 600;
+          color: var(--text-primary);
+        }
+
+        .room-info-cell {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .room-subtag {
+          font-size: 0.75rem;
+          color: var(--slate-400);
+          text-transform: capitalize;
+        }
+
+        .date-cell {
+          color: var(--slate-300);
+        }
+
+        .price-cell {
+          font-weight: 700;
+          color: var(--accent-400);
+        }
+
+        .action-buttons-group {
+          display: flex;
+          justify-content: flex-end;
+          gap: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+          .dash-welcome {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          .book-cta-btn {
+            margin-left: 0;
+            width: 100%;
+          }
+        }
       `}</style>
     </div>
   );
