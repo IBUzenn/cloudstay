@@ -1,0 +1,28 @@
+# Frontend .dockerignore
+# Prevents unnecessary files from being copied into the build context
+
+# Node modules (rebuilt inside Docker)
+node_modules
+
+# Build output (rebuilt inside Docker)
+dist
+
+# Environment secrets
+.env
+.env.*
+.env.local
+.env.development
+.env.production
+
+# Git files
+.git
+.gitignore
+.gitkeep
+
+# Editor files
+.vscode
+.idea
+
+# OS files
+.DS_Store
+Thumbs.db
