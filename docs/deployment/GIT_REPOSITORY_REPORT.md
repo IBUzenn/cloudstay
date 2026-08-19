@@ -52,13 +52,13 @@ The Git repository uses a standard trunk-based branching strategy:
 
 | Branch Name | Purpose | Status |
 |---|---|---|
-| `main` | Production-ready stable code. All audited commits live on `main`. | **Active / Current** |
-| `development` | Integration branch for staging active feature development. | **Created** |
-| `feature/frontend` | Dedicated branch for React UI components and Vite build work. | **Created** |
-| `feature/backend` | Dedicated branch for Express API routes and business logic. | **Created** |
-| `feature/database` | Dedicated branch for MySQL schema migrations and stored procedures. | **Created** |
-| `feature/cloud-deployment` | Dedicated branch for Docker Compose, Nginx, and AWS configs. | **Created** |
-| `feature/testing-docs` | Dedicated branch for Jest unit/integration tests and reports. | **Created** |
+| `main` | Production-ready stable code. All audited commits live on `main`. | **Active / Pushed to origin/main** |
+| `development` | Integration branch for staging active feature development. | **Pushed to origin/development** |
+| `feature/frontend` | Dedicated branch for React UI components and Vite build work. | **Pushed to origin/feature/frontend** |
+| `feature/backend` | Dedicated branch for Express API routes and business logic. | **Pushed to origin/feature/backend** |
+| `feature/database` | Dedicated branch for MySQL schema migrations and stored procedures. | **Pushed to origin/feature/database** |
+| `feature/cloud-deployment` | Dedicated branch for Docker Compose, Nginx, and AWS configs. | **Pushed to origin/feature/cloud-deployment** |
+| `feature/testing-docs` | Dedicated branch for Jest unit/integration tests and reports. | **Pushed to origin/feature/testing-docs** |
 
 ---
 
