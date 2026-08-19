@@ -23,10 +23,10 @@ export default function AdminDashboard() {
         
         <div className="grid-4" style={{ marginBottom: '2rem' }}>
           {[
-            { label: 'Total Users',   value: stats.users,             color: 'var(--brand-400)',  icon: <Users size={20}/> },
-            { label: 'Total Hostels', value: stats.hostels,           color: 'var(--accent-400)', icon: <Building2 size={20}/> },
-            { label: 'Total Rooms',   value: stats.rooms?.total    ?? stats.rooms,    color: '#38bdf8', icon: <BookOpen size={20}/> },
-            { label: 'Total Bookings',value: stats.bookings?.total ?? stats.bookings, color: '#a78bfa', icon: <DollarSign size={20}/> },
+            { label: 'Total Students', value: stats.students?.total ?? stats.users ?? stats.students, color: 'var(--brand-400)',  icon: <Users size={20}/> },
+            { label: 'Total Hostels',  value: stats.hostels?.total  ?? stats.hostels  ?? '—',         color: 'var(--accent-400)', icon: <Building2 size={20}/> },
+            { label: 'Total Rooms',    value: stats.rooms?.total    ?? stats.rooms,                   color: '#38bdf8',           icon: <BookOpen size={20}/> },
+            { label: 'Total Bookings', value: stats.bookings?.total ?? stats.bookings,                color: '#a78bfa',           icon: <DollarSign size={20}/> },
           ].map(s => (
             <div key={s.label} className="stat-card fade-in">
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'0.75rem' }}>
