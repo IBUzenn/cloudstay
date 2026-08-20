@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, Hash, Building2, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, Hash, Eye, EyeOff } from 'lucide-react';
 import { authApi } from '../../api';
+import Logo from '../../components/common/Logo';
 import toast from 'react-hot-toast';
 
 export default function RegisterPage() {
@@ -21,12 +22,13 @@ export default function RegisterPage() {
 
   const validate = () => {
     const errs = {};
-    if (!form.name.trim()) errs.name = 'Full name is required.';
-    if (!form.email.trim()) errs.email = 'Email address is required.';
-    if (!form.studentId.trim()) errs.studentId = 'Student ID is required.';
-    if (!form.password) errs.password = 'Password is required.';
-    else if (form.password.length < 6) errs.password = 'Password must be at least 6 characters.';
-    if (form.password !== form.confirmPassword) errs.confirmPassword = 'Passwords do not match.';
+    if (!form.name.trim())        errs.name            = 'Full name is required.';
+    if (!form.email.trim())       errs.email           = 'Email address is required.';
+    if (!form.studentId.trim())   errs.studentId       = 'Student ID is required.';
+    if (!form.password)           errs.password        = 'Password is required.';
+    else if (form.password.length < 6) errs.password   = 'Password must be at least 6 characters.';
+    if (form.password !== form.confirmPassword)
+                                  errs.confirmPassword = 'Passwords do not match.';
     return errs;
   };
 
@@ -37,15 +39,15 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await authApi.register({
-        name: form.name,
-        email: form.email,
+        name:      form.name,
+        email:     form.email,
         studentId: form.studentId,
-        password: form.password,
+        password:  form.password,
       });
       toast.success('Registration successful! Please sign in.');
       navigate('/login');
     } catch (err) {
-      const msg = err.response?.data?.message || 'Registration failed. Please check inputs.';
+      const msg = err.response?.data?.message || 'Registration failed. Please check your inputs.';
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -53,28 +55,24 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="auth-page-wrapper">
-      <div className="auth-card-container card fade-in" style={{ maxWidth: 480 }}>
-        {/* Header */}
+    <main className="auth-page">
+      <div className="auth-card card">
         <div className="auth-header">
-          <div className="auth-logo-badge">
-            <Building2 size={26} />
-          </div>
-          <h2>Create Student Account</h2>
-          <p className="auth-subtitle">Register to reserve your hostel room for the semester</p>
+          <Logo size={36} variant="dark" showText={true} subtitle={true} />
+          <h2 className="auth-title">Create Student Account</h2>
+          <p className="subtext">Register your student details to browse and book hostel rooms</p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} noValidate className="auth-form">
           <div className="form-group">
             <label className="form-label" htmlFor="name">Full Name</label>
-            <div className="input-icon-wrapper">
-              <User size={16} className="input-icon" />
+            <div className="field-wrap">
+              <User size={16} className="field-icon" />
               <input
                 id="name"
                 name="name"
                 type="text"
-                className={`form-input input-with-icon ${errors.name ? 'error' : ''}`}
+                className={`form-input has-icon${errors.name ? ' error' : ''}`}
                 placeholder="e.g. Abena Mensah"
                 value={form.name}
                 onChange={handleChange}
@@ -83,17 +81,17 @@ export default function RegisterPage() {
             {errors.name && <p className="form-error">{errors.name}</p>}
           </div>
 
-          <div className="grid-2">
+          <div className="reg-grid">
             <div className="form-group">
               <label className="form-label" htmlFor="email">Email Address</label>
-              <div className="input-icon-wrapper">
-                <Mail size={16} className="input-icon" />
+              <div className="field-wrap">
+                <Mail size={16} className="field-icon" />
                 <input
                   id="email"
                   name="email"
                   type="email"
-                  className={`form-input input-with-icon ${errors.email ? 'error' : ''}`}
-                  placeholder="student@edu"
+                  className={`form-input has-icon${errors.email ? ' error' : ''}`}
+                  placeholder="you@student.edu"
                   value={form.email}
                   onChange={handleChange}
                 />
@@ -103,13 +101,13 @@ export default function RegisterPage() {
 
             <div className="form-group">
               <label className="form-label" htmlFor="studentId">Student ID</label>
-              <div className="input-icon-wrapper">
-                <Hash size={16} className="input-icon" />
+              <div className="field-wrap">
+                <Hash size={16} className="field-icon" />
                 <input
                   id="studentId"
                   name="studentId"
                   type="text"
-                  className={`form-input input-with-icon ${errors.studentId ? 'error' : ''}`}
+                  className={`form-input has-icon${errors.studentId ? ' error' : ''}`}
                   placeholder="STU-2026-001"
                   value={form.studentId}
                   onChange={handleChange}
@@ -119,23 +117,23 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <div className="grid-2">
+          <div className="reg-grid">
             <div className="form-group">
               <label className="form-label" htmlFor="password">Password</label>
-              <div className="input-icon-wrapper">
-                <Lock size={16} className="input-icon" />
+              <div className="field-wrap">
+                <Lock size={16} className="field-icon" />
                 <input
                   id="password"
                   name="password"
                   type={showPwd ? 'text' : 'password'}
-                  className={`form-input input-with-icon input-with-right-btn ${errors.password ? 'error' : ''}`}
-                  placeholder="••••••••"
+                  className={`form-input has-icon has-right-btn${errors.password ? ' error' : ''}`}
+                  placeholder="Min. 6 characters"
                   value={form.password}
                   onChange={handleChange}
                 />
                 <button
                   type="button"
-                  className="pwd-toggle-btn"
+                  className="toggle-pwd-btn"
                   onClick={() => setShowPwd(!showPwd)}
                   aria-label="Toggle password"
                 >
@@ -147,14 +145,14 @@ export default function RegisterPage() {
 
             <div className="form-group">
               <label className="form-label" htmlFor="confirmPassword">Confirm Password</label>
-              <div className="input-icon-wrapper">
-                <Lock size={16} className="input-icon" />
+              <div className="field-wrap">
+                <Lock size={16} className="field-icon" />
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
                   type={showPwd ? 'text' : 'password'}
-                  className={`form-input input-with-icon ${errors.confirmPassword ? 'error' : ''}`}
-                  placeholder="••••••••"
+                  className={`form-input has-icon${errors.confirmPassword ? ' error' : ''}`}
+                  placeholder="Repeat password"
                   value={form.confirmPassword}
                   onChange={handleChange}
                 />
@@ -167,39 +165,34 @@ export default function RegisterPage() {
             type="submit"
             className="btn btn-primary btn-full btn-lg"
             disabled={loading}
-            style={{ marginTop: '0.5rem' }}
+            style={{ marginTop: '0.25rem' }}
           >
-            {loading ? (
-              <>
-                <span className="spinner" style={{ width: 16, height: 16 }} />
-                Creating Account...
-              </>
-            ) : (
-              'Complete Registration'
-            )}
+            {loading ? 'Creating Account…' : 'Complete Student Registration'}
           </button>
         </form>
 
-        <p className="auth-footer-text">
+        <p className="auth-footer-note">
           Already registered? <Link to="/login">Sign in to your account</Link>
         </p>
       </div>
 
       <style>{`
-        .auth-page-wrapper {
-          min-height: calc(100vh - 70px - 120px);
+        .auth-page {
+          min-height: calc(100vh - 64px - 180px);
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 2.5rem 1rem;
         }
 
-        .auth-card-container {
-          padding: 2.5rem 2rem;
+        .auth-card {
+          padding: 2.25rem;
           width: 100%;
+          max-width: 500px;
           display: flex;
           flex-direction: column;
-          gap: 1.5rem;
+          gap: 1.35rem;
+          border-top: 4px solid var(--navy-primary);
         }
 
         .auth-header {
@@ -207,79 +200,68 @@ export default function RegisterPage() {
           flex-direction: column;
           align-items: center;
           text-align: center;
+          gap: 0.45rem;
         }
 
-        .auth-logo-badge {
-          width: 52px;
-          height: 52px;
-          border-radius: var(--radius-md);
-          background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #ffffff;
-          box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
-          margin-bottom: 1rem;
-        }
-
-        .auth-subtitle {
-          color: var(--slate-400);
-          font-size: 0.875rem;
-          margin-top: 0.25rem;
+        .auth-title {
+          font-size: 1.35rem;
+          font-weight: 700;
+          color: var(--navy-primary);
+          margin-top: 0.2rem;
         }
 
         .auth-form {
           display: flex;
           flex-direction: column;
-          gap: 1.15rem;
+          gap: 1rem;
         }
 
-        .input-icon-wrapper {
+        .reg-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.85rem;
+        }
+
+        .field-wrap {
           position: relative;
           display: flex;
           align-items: center;
         }
 
-        .input-icon {
+        .field-icon {
           position: absolute;
-          left: 0.9rem;
-          color: var(--slate-400);
+          left: 0.85rem;
+          color: var(--text-muted);
           pointer-events: none;
         }
 
-        .input-with-icon {
-          padding-left: 2.6rem;
-        }
+        .has-icon { padding-left: 2.4rem; }
+        .has-right-btn { padding-right: 2.5rem; }
 
-        .input-with-right-btn {
-          padding-right: 2.6rem;
-        }
-
-        .pwd-toggle-btn {
+        .toggle-pwd-btn {
           position: absolute;
-          right: 0.8rem;
-          color: var(--slate-400);
-          padding: 0.2rem;
+          right: 0.75rem;
+          color: var(--text-muted);
           display: flex;
-          align-items: center;
-          justify-content: center;
+          padding: 0.2rem;
         }
-        .pwd-toggle-btn:hover { color: var(--text-primary); }
+        .toggle-pwd-btn:hover { color: var(--navy-primary); }
 
-        .auth-footer-text {
+        .auth-footer-note {
           text-align: center;
           font-size: 0.875rem;
-          color: var(--slate-400);
+          color: var(--text-secondary);
           border-top: 1px solid var(--border-subtle);
-          padding-top: 1.25rem;
+          padding-top: 1rem;
         }
+        .auth-footer-note a {
+          color: var(--blue-primary);
+          font-weight: 700;
+        }
+        .auth-footer-note a:hover { text-decoration: underline; }
 
-        .auth-footer-text a {
-          color: var(--brand-400);
-          font-weight: 600;
-        }
-        .auth-footer-text a:hover {
-          text-decoration: underline;
+        @media (max-width: 520px) {
+          .reg-grid { grid-template-columns: 1fr; }
         }
       `}</style>
     </main>

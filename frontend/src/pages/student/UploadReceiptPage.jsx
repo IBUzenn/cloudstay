@@ -57,12 +57,12 @@ export default function UploadReceiptPage() {
     return (
       <div className="page-wrapper">
         <div className="container" style={{ maxWidth: 540 }}>
-          <div className="card fade-in" style={{ padding: '3.5rem 2rem', textAlign: 'center' }}>
+          <div className="card" style={{ padding: '3rem 2rem', textAlign: 'center' }}>
             <div className="success-icon-badge">
-              <CheckCircle2 size={56} />
+              <CheckCircle2 size={48} />
             </div>
             <h2>Receipt Uploaded Successfully!</h2>
-            <p style={{ color: 'var(--slate-400)', fontSize: '0.925rem', margin: '0.75rem 0 2rem' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '0.5rem 0 1.5rem' }}>
               Your proof of payment for Booking #{id} has been submitted for university admin review.
             </p>
             <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>
@@ -72,8 +72,10 @@ export default function UploadReceiptPage() {
         </div>
         <style>{`
           .success-icon-badge {
-            color: var(--accent-400);
-            margin-bottom: 1.25rem;
+            color: var(--emerald-600);
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: center;
           }
         `}</style>
       </div>
@@ -86,7 +88,7 @@ export default function UploadReceiptPage() {
         <button
           className="btn btn-outline btn-sm"
           onClick={() => navigate(-1)}
-          style={{ marginBottom: '1.75rem' }}
+          style={{ marginBottom: '1.25rem' }}
         >
           <ChevronLeft size={16} /> Back to Booking
         </button>
@@ -117,9 +119,9 @@ export default function UploadReceiptPage() {
             <div className="file-preview-card">
               <div className="file-icon">
                 {file.type === 'application/pdf' ? (
-                  <FileText size={36} color="var(--brand-400)" />
+                  <FileText size={32} color="var(--blue-600)" />
                 ) : (
-                  <FileImage size={36} color="var(--accent-400)" />
+                  <FileImage size={32} color="var(--emerald-600)" />
                 )}
               </div>
               <div className="file-meta">
@@ -137,7 +139,7 @@ export default function UploadReceiptPage() {
           ) : (
             <div className="drop-prompt">
               <div className="upload-icon-circle">
-                <Upload size={28} />
+                <Upload size={24} />
               </div>
               <div>
                 <p className="prompt-main">Drag & drop your receipt document here</p>
@@ -149,18 +151,13 @@ export default function UploadReceiptPage() {
 
         <button
           className="btn btn-primary btn-full btn-lg"
-          style={{ marginTop: '1.75rem' }}
+          style={{ marginTop: '1.25rem' }}
           onClick={handleSubmit}
           disabled={!file || loading}
         >
-          {loading ? (
+          {loading ? 'Uploading Document...' : (
             <>
-              <span className="spinner" style={{ width: 16, height: 16 }} />
-              Uploading Document...
-            </>
-          ) : (
-            <>
-              <ShieldCheck size={18} /> Submit Receipt Document
+              <ShieldCheck size={16} /> Submit Receipt Document
             </>
           )}
         </button>
@@ -168,73 +165,72 @@ export default function UploadReceiptPage() {
 
       <style>{`
         .upload-header {
-          margin-bottom: 2rem;
+          margin-bottom: 1.5rem;
         }
 
         .upload-subtext {
-          color: var(--slate-400);
-          font-size: 0.9rem;
-          margin-top: 0.25rem;
+          color: var(--text-muted);
+          font-size: 0.875rem;
+          margin-top: 0.2rem;
         }
 
         .drop-zone {
           border: 2px dashed var(--border-medium);
-          border-radius: var(--radius-lg);
-          padding: 3rem 2rem;
+          border-radius: var(--radius-md);
+          padding: 2.5rem 1.5rem;
           cursor: pointer;
-          transition: all var(--duration-base) var(--ease-smooth);
-          background: rgba(15, 23, 42, 0.5);
+          transition: all 140ms ease-in-out;
+          background: #ffffff;
         }
 
         .drop-zone:hover, .drop-zone.dragover {
-          border-color: var(--brand-500);
-          background: rgba(99, 102, 241, 0.08);
-          box-shadow: var(--shadow-glow);
+          border-color: var(--blue-500);
+          background: var(--blue-50);
         }
 
         .drop-zone.has-file {
           border-style: solid;
-          border-color: rgba(99, 102, 241, 0.4);
-          background: var(--surface-card);
-          padding: 1.75rem;
+          border-color: var(--blue-400);
+          background: #ffffff;
+          padding: 1.25rem;
         }
 
         .drop-prompt {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 1.25rem;
+          gap: 1rem;
           text-align: center;
         }
 
         .upload-icon-circle {
-          width: 60px;
-          height: 60px;
+          width: 52px;
+          height: 52px;
           border-radius: 50%;
-          background: rgba(99, 102, 241, 0.12);
-          border: 1px solid rgba(99, 102, 241, 0.25);
+          background: var(--blue-50);
+          border: 1px solid var(--blue-200);
           display: flex;
           align-items: center;
           justify-content: center;
-          color: var(--brand-400);
+          color: var(--blue-600);
         }
 
         .prompt-main {
-          font-size: 1rem;
+          font-size: 0.95rem;
           font-weight: 600;
           color: var(--text-primary);
         }
 
         .prompt-sub {
-          font-size: 0.85rem;
-          color: var(--slate-400);
-          margin-top: 0.2rem;
+          font-size: 0.825rem;
+          color: var(--text-muted);
+          margin-top: 0.15rem;
         }
 
         .file-preview-card {
           display: flex;
           align-items: center;
-          gap: 1.25rem;
+          gap: 1rem;
         }
 
         .file-meta {
@@ -246,6 +242,7 @@ export default function UploadReceiptPage() {
 
         .file-name {
           font-weight: 600;
+          font-size: 0.9rem;
           color: var(--text-primary);
           white-space: nowrap;
           overflow: hidden;
@@ -253,8 +250,8 @@ export default function UploadReceiptPage() {
         }
 
         .file-size {
-          font-size: 0.8rem;
-          color: var(--slate-400);
+          font-size: 0.775rem;
+          color: var(--text-muted);
         }
 
         .remove-btn {

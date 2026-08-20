@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Building2, Eye, EyeOff, ShieldCheck, UserCheck, KeyRound, Sparkles } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, UserCheck, ShieldCheck, KeyRound } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import Logo from '../../components/common/Logo';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
@@ -17,7 +18,7 @@ export default function LoginPage() {
   const fillDemo = (email, password) => {
     setForm({ email, password });
     setErrors({});
-    toast.success(`Demo credentials filled! Click 'Sign In' to proceed.`);
+    toast.success('Demo credentials filled.');
   };
 
   const validate = () => {
@@ -34,10 +35,10 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const user = await login(form.email, form.password);
-      toast.success(`Welcome back, ${user.name.split(' ')[0]}!`);
-      if (user.role === 'admin')   navigate('/admin');
+      toast.success(`Welcome back, ${user.name.split(' ')[0]}`);
+      if (user.role === 'admin')        navigate('/admin');
       else if (user.role === 'manager') navigate('/manager');
-      else navigate('/dashboard');
+      else                              navigate('/dashboard');
     } catch (err) {
       const msg = err.response?.data?.message || 'Invalid email or password.';
       toast.error(msg);
@@ -47,38 +48,35 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="auth-page-wrapper">
-      <div className="auth-card-container card fade-in">
-        {/* Header */}
+    <main className="auth-page">
+      <div className="auth-card card">
         <div className="auth-header">
-          <div className="auth-logo-badge">
-            <Building2 size={26} />
-          </div>
-          <h2>Welcome Back</h2>
-          <p className="auth-subtitle">Sign in to your CloudStay account</p>
+          <Logo size={36} variant="dark" showText={true} subtitle={true} />
+          <h2 className="auth-title">Sign In to Account</h2>
+          <p className="subtext">Enter your credentials to access your hostel reservation portal</p>
         </div>
 
-        {/* Quick Fill Chips */}
-        <div className="demo-fill-bar">
-          <span className="demo-fill-title"><Sparkles size={13} /> Quick Fill Demo Account:</span>
-          <div className="demo-chip-group">
+        {/* Demo Login Helper Panel */}
+        <div className="demo-panel">
+          <span className="demo-label">Quick Demo Access:</span>
+          <div className="demo-actions">
             <button
               type="button"
-              className="demo-chip"
+              className="btn btn-secondary btn-sm"
               onClick={() => fillDemo('abena.mensah@student.edu', 'Student@1234')}
             >
               <UserCheck size={13} /> Student
             </button>
             <button
               type="button"
-              className="demo-chip"
+              className="btn btn-secondary btn-sm"
               onClick={() => fillDemo('admin@cloudstay.edu', 'Admin@1234')}
             >
               <KeyRound size={13} /> Admin
             </button>
             <button
               type="button"
-              className="demo-chip"
+              className="btn btn-secondary btn-sm"
               onClick={() => fillDemo('manager.blueblock@cloudstay.edu', 'Admin@1234')}
             >
               <ShieldCheck size={13} /> Manager
@@ -86,17 +84,16 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Login Form */}
         <form onSubmit={handleSubmit} noValidate className="auth-form">
           <div className="form-group">
             <label className="form-label" htmlFor="email">Email Address</label>
-            <div className="input-icon-wrapper">
-              <Mail size={16} className="input-icon" />
+            <div className="field-wrap">
+              <Mail size={16} className="field-icon" />
               <input
                 id="email"
                 name="email"
                 type="email"
-                className={`form-input input-with-icon ${errors.email ? 'error' : ''}`}
+                className={`form-input has-icon${errors.email ? ' error' : ''}`}
                 placeholder="you@student.edu"
                 value={form.email}
                 onChange={handleChange}
@@ -108,25 +105,25 @@ export default function LoginPage() {
 
           <div className="form-group">
             <label className="form-label" htmlFor="password">Password</label>
-            <div className="input-icon-wrapper">
-              <Lock size={16} className="input-icon" />
+            <div className="field-wrap">
+              <Lock size={16} className="field-icon" />
               <input
                 id="password"
                 name="password"
                 type={showPwd ? 'text' : 'password'}
-                className={`form-input input-with-icon input-with-right-btn ${errors.password ? 'error' : ''}`}
-                placeholder="••••••••••••"
+                className={`form-input has-icon has-right-btn${errors.password ? ' error' : ''}`}
+                placeholder="••••••••••"
                 value={form.password}
                 onChange={handleChange}
                 autoComplete="current-password"
               />
               <button
                 type="button"
-                className="pwd-toggle-btn"
+                className="toggle-pwd-btn"
                 onClick={() => setShowPwd(!showPwd)}
                 aria-label="Toggle password visibility"
               >
-                {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             </div>
             {errors.password && <p className="form-error">{errors.password}</p>}
@@ -136,41 +133,34 @@ export default function LoginPage() {
             type="submit"
             className="btn btn-primary btn-full btn-lg"
             disabled={loading}
-            style={{ marginTop: '0.5rem' }}
+            style={{ marginTop: '0.25rem' }}
           >
-            {loading ? (
-              <>
-                <span className="spinner" style={{ width: 16, height: 16 }} />
-                Authenticating...
-              </>
-            ) : (
-              'Sign In to Account'
-            )}
+            {loading ? 'Signing in…' : 'Sign In'}
           </button>
         </form>
 
-        {/* Footer Link */}
-        <p className="auth-footer-text">
-          Don't have an account? <Link to="/register">Register student account</Link>
+        <p className="auth-footer-note">
+          Don't have a student account? <Link to="/register">Register here</Link>
         </p>
       </div>
 
       <style>{`
-        .auth-page-wrapper {
-          min-height: calc(100vh - 70px - 120px);
+        .auth-page {
+          min-height: calc(100vh - 64px - 180px);
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 2.5rem 1rem;
         }
 
-        .auth-card-container {
-          padding: 2.75rem 2.25rem;
+        .auth-card {
+          padding: 2.25rem;
           width: 100%;
-          max-width: 440px;
+          max-width: 420px;
           display: flex;
           flex-direction: column;
-          gap: 1.5rem;
+          gap: 1.35rem;
+          border-top: 4px solid var(--navy-primary);
         }
 
         .auth-header {
@@ -178,125 +168,84 @@ export default function LoginPage() {
           flex-direction: column;
           align-items: center;
           text-align: center;
-        }
-
-        .auth-logo-badge {
-          width: 52px;
-          height: 52px;
-          border-radius: var(--radius-md);
-          background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #ffffff;
-          box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
-          margin-bottom: 1rem;
-        }
-
-        .auth-subtitle {
-          color: var(--slate-400);
-          font-size: 0.875rem;
-          margin-top: 0.25rem;
-        }
-
-        .demo-fill-bar {
-          background: rgba(99, 102, 241, 0.08);
-          border: 1px solid rgba(99, 102, 241, 0.2);
-          border-radius: var(--radius-md);
-          padding: 0.75rem;
-          display: flex;
-          flex-direction: column;
           gap: 0.5rem;
         }
 
-        .demo-fill-title {
-          font-size: 0.75rem;
-          font-weight: 600;
-          color: var(--brand-300);
-          display: flex;
-          align-items: center;
-          gap: 0.35rem;
+        .auth-title {
+          font-size: 1.35rem;
+          font-weight: 700;
+          color: var(--navy-primary);
+          margin-top: 0.25rem;
         }
 
-        .demo-chip-group {
+        .demo-panel {
+          background: var(--surface-blue);
+          border: 1px solid var(--border-subtle);
+          border-radius: var(--radius-sm);
+          padding: 0.75rem 0.85rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.45rem;
+        }
+
+        .demo-label {
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: var(--navy-primary);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .demo-actions {
           display: flex;
           gap: 0.4rem;
           flex-wrap: wrap;
         }
 
-        .demo-chip {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.3rem;
-          padding: 0.25rem 0.65rem;
-          background: rgba(15, 23, 42, 0.7);
-          border: 1px solid var(--border-subtle);
-          border-radius: var(--radius-sm);
-          color: var(--slate-300);
-          font-size: 0.75rem;
-          font-weight: 500;
-          transition: all var(--duration-fast);
-        }
-
-        .demo-chip:hover {
-          background: var(--brand-600);
-          border-color: var(--brand-500);
-          color: #ffffff;
-        }
-
         .auth-form {
           display: flex;
           flex-direction: column;
-          gap: 1.15rem;
+          gap: 1rem;
         }
 
-        .input-icon-wrapper {
+        .field-wrap {
           position: relative;
           display: flex;
           align-items: center;
         }
 
-        .input-icon {
+        .field-icon {
           position: absolute;
-          left: 0.9rem;
-          color: var(--slate-400);
+          left: 0.85rem;
+          color: var(--text-muted);
           pointer-events: none;
         }
 
-        .input-with-icon {
-          padding-left: 2.6rem;
-        }
+        .has-icon { padding-left: 2.4rem; }
+        .has-right-btn { padding-right: 2.5rem; }
 
-        .input-with-right-btn {
-          padding-right: 2.6rem;
-        }
-
-        .pwd-toggle-btn {
+        .toggle-pwd-btn {
           position: absolute;
-          right: 0.8rem;
-          color: var(--slate-400);
-          padding: 0.2rem;
+          right: 0.75rem;
+          color: var(--text-muted);
           display: flex;
-          align-items: center;
-          justify-content: center;
+          padding: 0.2rem;
         }
-        .pwd-toggle-btn:hover { color: var(--text-primary); }
+        .toggle-pwd-btn:hover { color: var(--navy-primary); }
 
-        .auth-footer-text {
+        .auth-footer-note {
           text-align: center;
           font-size: 0.875rem;
-          color: var(--slate-400);
+          color: var(--text-secondary);
           border-top: 1px solid var(--border-subtle);
-          padding-top: 1.25rem;
+          padding-top: 1rem;
         }
 
-        .auth-footer-text a {
-          color: var(--brand-400);
-          font-weight: 600;
+        .auth-footer-note a {
+          color: var(--blue-primary);
+          font-weight: 700;
         }
-        .auth-footer-text a:hover {
-          text-decoration: underline;
-        }
+        .auth-footer-note a:hover { text-decoration: underline; }
       `}</style>
     </main>
   );

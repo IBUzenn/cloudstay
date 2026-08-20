@@ -130,7 +130,7 @@ export default function BookingDetail() {
             </div>
             <div className="detail-row">
               <span>Semester Price</span>
-              <strong style={{ color: 'var(--accent-400)', fontSize: '1.05rem' }}>
+              <strong style={{ color: 'var(--emerald-600)', fontSize: '1.05rem' }}>
                 {formatCurrency(booking.price_per_semester)}
               </strong>
             </div>
@@ -159,7 +159,7 @@ export default function BookingDetail() {
             {booking.receipt_url ? (
               <div className="receipt-box">
                 <div className="receipt-info">
-                  <CheckCircle2 size={18} color="var(--accent-400)" />
+                  <CheckCircle2 size={18} color="var(--success-text)" />
                   <span>Payment receipt has been uploaded</span>
                 </div>
                 <a
@@ -221,39 +221,42 @@ export default function BookingDetail() {
 
       <style>{`
         .booking-title-bar {
-          padding: 1.75rem 2rem;
+          padding: 1.25rem 1.5rem;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 1.5rem;
+          margin-bottom: 1.25rem;
           flex-wrap: wrap;
           gap: 1rem;
         }
 
         .id-tag {
-          font-size: 0.75rem;
+          font-size: 0.72rem;
           font-weight: 700;
           letter-spacing: 0.08em;
-          color: var(--brand-300);
-          margin-bottom: 0.25rem;
+          color: var(--blue-600);
+          text-transform: uppercase;
+          margin-bottom: 0.2rem;
         }
 
         .location-sub {
-          font-size: 0.9rem;
-          color: var(--slate-400);
+          font-size: 0.875rem;
+          color: var(--text-muted);
+          margin-top: 0.15rem;
         }
 
         .stepper-card {
-          padding: 1.5rem 2rem;
-          margin-bottom: 1.5rem;
+          padding: 1.25rem 1.5rem;
+          margin-bottom: 1.25rem;
         }
 
         .stepper-title {
-          font-size: 0.9rem;
-          color: var(--slate-400);
+          font-size: 0.72rem;
+          font-weight: 600;
+          color: var(--text-muted);
           text-transform: uppercase;
-          letter-spacing: 0.05em;
-          margin-bottom: 1.25rem;
+          letter-spacing: 0.06em;
+          margin-bottom: 1.1rem;
         }
 
         .stepper-track {
@@ -266,28 +269,28 @@ export default function BookingDetail() {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 0.4rem;
-          color: var(--slate-500);
+          gap: 0.35rem;
+          color: var(--text-muted);
         }
 
         .step-circle {
-          width: 36px;
-          height: 36px;
+          width: 34px;
+          height: 34px;
           border-radius: 50%;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid var(--border-subtle);
+          background: var(--surface-subtle);
+          border: 1px solid var(--border-medium);
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
         .step-label {
-          font-size: 0.775rem;
+          font-size: 0.75rem;
           font-weight: 500;
         }
 
         .step-item.complete {
-          color: var(--accent-400);
+          color: var(--success-text);
         }
         .step-item.complete .step-circle {
           background: var(--success-bg);
@@ -295,62 +298,62 @@ export default function BookingDetail() {
         }
 
         .step-item.current {
-          color: var(--brand-400);
+          color: var(--blue-600);
         }
         .step-item.current .step-circle {
-          background: var(--info-bg);
-          border-color: var(--brand-500);
-          box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+          background: var(--blue-50);
+          border-color: var(--blue-400);
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .step-line {
           flex: 1;
-          height: 2px;
+          height: 1px;
           background: var(--border-subtle);
-          margin: 0 1rem 1.25rem;
+          margin: 0 0.875rem 1.1rem;
         }
 
         .details-stack {
           display: flex;
           flex-direction: column;
-          gap: 1.25rem;
+          gap: 1.1rem;
         }
 
         .detail-card {
-          padding: 1.75rem;
+          padding: 1.25rem 1.5rem;
           display: flex;
           flex-direction: column;
-          gap: 1rem;
+          gap: 0.875rem;
         }
 
         .detail-card h3 {
-          font-size: 1rem;
+          font-size: 0.95rem;
           color: var(--text-primary);
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: 0.45rem;
           border-bottom: 1px solid var(--border-subtle);
-          padding-bottom: 0.75rem;
+          padding-bottom: 0.65rem;
         }
 
         .detail-row {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          font-size: 0.9rem;
+          font-size: 0.875rem;
         }
         .detail-row span:first-child {
-          color: var(--slate-400);
+          color: var(--text-muted);
         }
 
         .receipt-box {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          background: rgba(16, 185, 129, 0.06);
+          background: var(--success-bg);
           border: 1px solid var(--success-border);
-          border-radius: var(--radius-md);
-          padding: 1rem 1.25rem;
+          border-radius: var(--radius-sm);
+          padding: 0.875rem 1.1rem;
           flex-wrap: wrap;
           gap: 0.75rem;
         }
@@ -358,21 +361,21 @@ export default function BookingDetail() {
         .receipt-info {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: 0.45rem;
           font-size: 0.875rem;
-          color: var(--accent-400);
+          color: var(--success-text);
           font-weight: 500;
         }
 
         .no-receipt-text {
           font-size: 0.875rem;
-          color: var(--slate-400);
+          color: var(--text-muted);
         }
 
         .actions-bar {
           display: flex;
-          gap: 1rem;
-          margin-top: 0.5rem;
+          gap: 0.875rem;
+          margin-top: 0.25rem;
         }
       `}</style>
     </div>

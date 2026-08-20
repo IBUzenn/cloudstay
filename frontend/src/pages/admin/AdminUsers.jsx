@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../api';
-import { Users, Search, Shield, Ban, CheckCircle2, UserCheck, ShieldAlert } from 'lucide-react';
+import { Users, Search, Ban, UserCheck } from 'lucide-react';
 import Spinner from '../../components/common/Spinner';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import toast from 'react-hot-toast';
@@ -11,7 +11,7 @@ export default function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   
-  const [targetUser, setTargetUser] = useState(null); // User object to toggle
+  const [targetUser, setTargetUser] = useState(null);
   const [toggling, setToggling] = useState(false);
 
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function AdminUsers() {
     <div className="page-wrapper">
       <div className="container">
         {/* Header Bar */}
-        <div className="users-header-bar fade-in">
+        <div className="users-header-bar">
           <div>
             <h1>User Account Management</h1>
             <p className="subtext">
@@ -69,10 +69,10 @@ export default function AdminUsers() {
           </div>
 
           <div className="search-input-wrapper">
-            <Search size={16} className="search-icon" />
+            <Search size={15} className="search-icon" />
             <input
               type="text"
-              placeholder="Search by name, email or ID..."
+              placeholder="Search name, email or ID..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="form-input search-field"
@@ -83,8 +83,8 @@ export default function AdminUsers() {
         {loading ? (
           <Spinner label="Fetching user account list..." />
         ) : filteredUsers.length === 0 ? (
-          <div className="card empty-state fade-in">
-            <Users size={52} />
+          <div className="card empty-state">
+            <Users size={44} />
             <h3>No Users Found</h3>
             <p>No account records match your search criteria.</p>
             {search && (
@@ -94,7 +94,7 @@ export default function AdminUsers() {
             )}
           </div>
         ) : (
-          <div className="table-wrapper fade-in">
+          <div className="table-wrapper">
             <table className="table">
               <thead>
                 <tr>
@@ -138,7 +138,7 @@ export default function AdminUsers() {
                             className={`btn btn-sm ${u.is_active ? 'btn-danger' : 'btn-success'}`}
                             onClick={() => setTargetUser(u)}
                           >
-                            {u.is_active ? <Ban size={14} /> : <UserCheck size={14} />}
+                            {u.is_active ? <Ban size={13} /> : <UserCheck size={13} />}
                             {u.is_active ? 'Deactivate' : 'Activate'}
                           </button>
                         )}
@@ -170,17 +170,11 @@ export default function AdminUsers() {
           display: flex;
           justify-content: space-between;
           align-items: flex-end;
-          margin-bottom: 2rem;
-          padding-bottom: 1.25rem;
+          margin-bottom: 1.5rem;
+          padding-bottom: 1rem;
           border-bottom: 1px solid var(--border-subtle);
           flex-wrap: wrap;
           gap: 1rem;
-        }
-
-        .subtext {
-          color: var(--slate-400);
-          font-size: 0.9rem;
-          margin-top: 0.2rem;
         }
 
         .search-input-wrapper {
@@ -191,15 +185,16 @@ export default function AdminUsers() {
 
         .search-icon {
           position: absolute;
-          left: 0.9rem;
-          color: var(--slate-400);
+          left: 0.75rem;
+          color: var(--text-muted);
           pointer-events: none;
         }
 
         .search-field {
-          padding-left: 2.5rem;
-          font-size: 0.875rem;
-          width: 260px;
+          padding-left: 2.25rem;
+          font-size: 0.85rem;
+          width: 240px;
+          background: var(--surface-card);
         }
 
         .user-name-cell {
@@ -214,47 +209,47 @@ export default function AdminUsers() {
 
         .student-id-sub {
           font-size: 0.75rem;
-          font-family: monospace;
-          color: var(--slate-400);
+          font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+          color: var(--text-muted);
         }
 
         .email-cell {
-          color: var(--slate-300);
+          color: var(--text-secondary);
           font-size: 0.875rem;
         }
 
         .role-badge {
           display: inline-flex;
           align-items: center;
-          padding: 0.2rem 0.6rem;
-          border-radius: var(--radius-sm);
-          font-size: 0.75rem;
+          padding: 0.15rem 0.55rem;
+          border-radius: 999px;
+          font-size: 0.72rem;
           font-weight: 600;
           text-transform: uppercase;
           letter-spacing: 0.04em;
         }
 
         .role-admin {
-          background: rgba(168, 85, 247, 0.15);
-          border: 1px solid rgba(168, 85, 247, 0.3);
-          color: #c084fc;
+          background: #f3e8ff;
+          border: 1px solid #d8b4fe;
+          color: #7e22ce;
         }
 
         .role-manager {
-          background: rgba(59, 130, 246, 0.15);
-          border: 1px solid rgba(59, 130, 246, 0.3);
-          color: #60a5fa;
+          background: var(--blue-50);
+          border: 1px solid var(--blue-200);
+          color: var(--blue-700);
         }
 
         .role-student {
-          background: rgba(100, 116, 139, 0.15);
-          border: 1px solid rgba(100, 116, 139, 0.3);
-          color: var(--slate-300);
+          background: var(--surface-subtle);
+          border: 1px solid var(--border-medium);
+          color: var(--text-secondary);
         }
 
         .date-cell {
           font-size: 0.825rem;
-          color: var(--slate-400);
+          color: var(--text-muted);
         }
 
         .action-cell {

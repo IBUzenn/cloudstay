@@ -4,11 +4,9 @@ import {
   CalendarDays,
   Building2,
   BedDouble,
-  DollarSign,
   ChevronLeft,
   ShieldCheck,
-  Info,
-  Sparkles
+  Info
 } from 'lucide-react';
 import { bookingApi } from '../../api';
 import { formatCurrency, ROOM_TYPE_LABELS } from '../../utils/helpers';
@@ -75,11 +73,11 @@ export default function BookingForm() {
 
   return (
     <div className="page-wrapper">
-      <div className="container" style={{ maxWidth: 900 }}>
+      <div className="container" style={{ maxWidth: 860 }}>
         <button
           className="btn btn-outline btn-sm"
           onClick={() => navigate(-1)}
-          style={{ marginBottom: '1.75rem' }}
+          style={{ marginBottom: '1.25rem' }}
         >
           <ChevronLeft size={16} /> Return to Hostel Details
         </button>
@@ -93,10 +91,10 @@ export default function BookingForm() {
 
         <div className="grid-2 booking-grid">
           {/* Left Column: Room & Hostel Summary Card */}
-          <div className="card summary-card fade-in">
+          <div className="card summary-card">
             <div className="card-badge-row">
               <span className="room-type-badge">
-                <BedDouble size={14} /> {ROOM_TYPE_LABELS[room.room_type] || room.room_type}
+                <BedDouble size={13} /> {ROOM_TYPE_LABELS[room.room_type] || room.room_type}
               </span>
               <span className="verified-tag">
                 <ShieldCheck size={13} /> Official Allocation
@@ -106,7 +104,7 @@ export default function BookingForm() {
             <div className="room-title-group">
               <h2>Room {room.room_number}</h2>
               <p className="hostel-name-location">
-                <Building2 size={15} /> {hostel.name} · {hostel.location}
+                <Building2 size={14} /> {hostel.name} · {hostel.location}
               </p>
             </div>
 
@@ -125,20 +123,20 @@ export default function BookingForm() {
               </div>
               <div className="spec-row">
                 <span>Status</span>
-                <strong style={{ color: 'var(--accent-400)' }}>Available for Booking</strong>
+                <strong style={{ color: 'var(--emerald-600)' }}>Available for Booking</strong>
               </div>
             </div>
           </div>
 
           {/* Right Column: Date Form */}
-          <div className="card form-card fade-in">
-            <h3 style={{ marginBottom: '1.25rem' }}>Select Semester Duration</h3>
+          <div className="card form-card">
+            <h3 style={{ marginBottom: '1rem' }}>Select Semester Duration</h3>
 
             <form onSubmit={handleSubmit} noValidate className="form-stack">
               <div className="form-group">
                 <label className="form-label" htmlFor="checkInDate">Check-in Date</label>
                 <div className="input-icon-wrapper">
-                  <CalendarDays size={16} className="input-icon" />
+                  <CalendarDays size={15} className="input-icon" />
                   <input
                     id="checkInDate"
                     type="date"
@@ -154,7 +152,7 @@ export default function BookingForm() {
               <div className="form-group">
                 <label className="form-label" htmlFor="checkOutDate">Check-out Date</label>
                 <div className="input-icon-wrapper">
-                  <CalendarDays size={16} className="input-icon" />
+                  <CalendarDays size={15} className="input-icon" />
                   <input
                     id="checkOutDate"
                     type="date"
@@ -168,7 +166,7 @@ export default function BookingForm() {
               </div>
 
               <div className="alert alert-info">
-                <Info size={18} style={{ flexShrink: 0 }} />
+                <Info size={16} style={{ flexShrink: 0 }} />
                 <span>
                   After submitting your dates, you will be prompted to upload proof of bank payment/receipt.
                 </span>
@@ -178,16 +176,9 @@ export default function BookingForm() {
                 type="submit"
                 className="btn btn-primary btn-full btn-lg"
                 disabled={loading}
-                style={{ marginTop: '0.5rem' }}
+                style={{ marginTop: '0.25rem' }}
               >
-                {loading ? (
-                  <>
-                    <span className="spinner" style={{ width: 16, height: 16 }} />
-                    Initializing Reservation...
-                  </>
-                ) : (
-                  'Confirm & Reserve Room'
-                )}
+                {loading ? 'Initializing Reservation...' : 'Confirm & Reserve Room'}
               </button>
             </form>
           </div>
@@ -196,17 +187,7 @@ export default function BookingForm() {
 
       <style>{`
         .booking-header {
-          margin-bottom: 2rem;
-        }
-
-        .booking-header h1 {
-          font-size: 1.85rem;
-          margin-bottom: 0.35rem;
-        }
-
-        .subtext {
-          color: var(--slate-400);
-          font-size: 0.925rem;
+          margin-bottom: 1.5rem;
         }
 
         .booking-grid {
@@ -214,10 +195,10 @@ export default function BookingForm() {
         }
 
         .summary-card {
-          padding: 2rem;
+          padding: 1.5rem;
           display: flex;
           flex-direction: column;
-          gap: 1.5rem;
+          gap: 1.15rem;
         }
 
         .card-badge-row {
@@ -229,90 +210,91 @@ export default function BookingForm() {
         .room-type-badge {
           display: inline-flex;
           align-items: center;
-          gap: 0.4rem;
-          padding: 0.3rem 0.75rem;
-          background: rgba(99, 102, 241, 0.12);
-          border: 1px solid rgba(99, 102, 241, 0.28);
-          border-radius: var(--radius-full);
-          color: var(--brand-300);
-          font-size: 0.775rem;
+          gap: 0.35rem;
+          padding: 0.2rem 0.6rem;
+          background: var(--blue-50);
+          border: 1px solid var(--blue-200);
+          border-radius: 999px;
+          color: var(--blue-700);
+          font-size: 0.75rem;
           font-weight: 600;
         }
 
         .verified-tag {
           display: inline-flex;
           align-items: center;
-          gap: 0.3rem;
-          color: var(--accent-400);
+          gap: 0.25rem;
+          color: var(--emerald-600);
           font-size: 0.75rem;
           font-weight: 500;
         }
 
         .room-title-group h2 {
-          font-size: 1.6rem;
-          margin-bottom: 0.35rem;
+          font-size: 1.35rem;
+          margin-bottom: 0.2rem;
         }
 
         .hostel-name-location {
           display: flex;
           align-items: center;
-          gap: 0.4rem;
-          color: var(--slate-300);
-          font-size: 0.9rem;
+          gap: 0.35rem;
+          color: var(--text-muted);
+          font-size: 0.85rem;
         }
 
         .pricing-box {
-          background: rgba(15, 23, 42, 0.6);
+          background: var(--surface-subtle);
           border: 1px solid var(--border-subtle);
-          border-radius: var(--radius-md);
-          padding: 1.25rem;
+          border-radius: var(--radius-sm);
+          padding: 1rem;
           display: flex;
           flex-direction: column;
-          gap: 0.25rem;
+          gap: 0.15rem;
         }
 
         .price-label {
-          font-size: 0.775rem;
-          color: var(--slate-400);
+          font-size: 0.72rem;
+          color: var(--text-muted);
           text-transform: uppercase;
           letter-spacing: 0.05em;
+          font-weight: 600;
         }
 
         .price-amount {
-          font-size: 1.85rem;
-          font-weight: 800;
-          color: var(--accent-400);
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: var(--emerald-600);
         }
 
         .price-sub {
-          font-size: 0.8rem;
-          color: var(--slate-400);
-          margin-left: 0.35rem;
+          font-size: 0.775rem;
+          color: var(--text-muted);
+          margin-left: 0.25rem;
         }
 
         .specs-list {
           display: flex;
           flex-direction: column;
-          gap: 0.75rem;
+          gap: 0.6rem;
           border-top: 1px solid var(--border-subtle);
-          padding-top: 1.25rem;
+          padding-top: 1rem;
         }
 
         .spec-row {
           display: flex;
           justify-content: space-between;
-          font-size: 0.875rem;
-          color: var(--slate-300);
+          font-size: 0.85rem;
+          color: var(--text-secondary);
         }
 
         .form-card {
-          padding: 2rem;
+          padding: 1.5rem;
         }
 
         .form-stack {
           display: flex;
           flex-direction: column;
-          gap: 1.25rem;
+          gap: 1rem;
         }
 
         .input-icon-wrapper {
@@ -323,13 +305,13 @@ export default function BookingForm() {
 
         .input-icon {
           position: absolute;
-          left: 0.9rem;
-          color: var(--slate-400);
+          left: 0.85rem;
+          color: var(--text-muted);
           pointer-events: none;
         }
 
         .input-with-icon {
-          padding-left: 2.6rem;
+          padding-left: 2.35rem;
         }
       `}</style>
     </div>

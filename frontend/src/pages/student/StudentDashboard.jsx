@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Upload, Clock, CheckCircle2, XCircle, Plus, ChevronRight, Eye } from 'lucide-react';
+import { BookOpen, Upload, Plus, Eye, AlertTriangle } from 'lucide-react';
 import { bookingApi } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { formatDate, formatCurrency, getInitials } from '../../utils/helpers';
@@ -19,113 +19,97 @@ export default function StudentDashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  const stats = {
-    total:    bookings.length,
-    pending:  bookings.filter((b) => b.status === 'pending').length,
-    approved: bookings.filter((b) => b.status === 'approved').length,
-    rejected: bookings.filter((b) => b.status === 'rejected').length,
-  };
+  const actionRequiredBooking = bookings.find(
+    (b) => b.status === 'approved' && !b.receipt_url
+  );
 
   return (
     <div className="page-wrapper">
       <div className="container">
-        {/* Student Profile Hero */}
-        <div className="dash-welcome card fade-in">
-          <div className="welcome-avatar-container">
-            <div className="welcome-avatar">
+
+        {/* Student Identity Header — Deep Navy Panel */}
+        <div className="student-hero-card">
+          <div className="student-id-group">
+            <div className="student-avatar">
               {getInitials(user?.name)}
             </div>
+            <div className="student-info">
+              <h1>{user?.name}</h1>
+              <p className="student-meta">
+                <span>{user?.email}</span>
+                {user?.student_id && (
+                  <span className="student-id-pill">{user.student_id}</span>
+                )}
+              </p>
+            </div>
           </div>
-
-          <div className="welcome-text-group">
-            <h1>
-              Welcome back, <span className="text-gradient">{user?.name.split(' ')[0]}</span>
-            </h1>
-            <p className="welcome-meta">
-              <span>{user?.email}</span>
-              <span className="meta-dot">•</span>
-              <span className="student-id-tag">Student ID: {user?.student_id || 'STU-OFFICIAL'}</span>
-            </p>
-          </div>
-
-          <Link to="/hostels" className="btn btn-primary btn-md book-cta-btn">
-            <Plus size={16} /> Book a Room
+          <Link to="/hostels" className="btn btn-primary btn-lg hero-cta">
+            <Plus size={16} /> Find a Room & Book
           </Link>
         </div>
 
-        {/* KPI Grid */}
-        <div className="grid-4 stats-grid">
-          {[
-            { label: 'Total Bookings',  value: stats.total,    color: 'var(--brand-400)',  icon: <BookOpen size={20} /> },
-            { label: 'Pending Review',  value: stats.pending,  color: 'var(--warn-400)',   icon: <Clock size={20} /> },
-            { label: 'Approved',        value: stats.approved, color: 'var(--accent-400)', icon: <CheckCircle2 size={20} /> },
-            { label: 'Rejected',        value: stats.rejected, color: 'var(--error-400)',  icon: <XCircle size={20} /> },
-          ].map((s) => (
-            <div key={s.label} className="stat-card">
-              <div className="stat-header">
-                <span className="stat-label">{s.label}</span>
-                <div className="stat-icon" style={{ color: s.color }}>
-                  {s.icon}
-                </div>
-              </div>
-              <div className="stat-value" style={{ color: s.color }}>
-                {s.value}
-              </div>
+        {/* Action Required Alert Banner */}
+        {actionRequiredBooking && (
+          <div className="alert alert-warn action-banner">
+            <AlertTriangle size={20} style={{ flexShrink: 0 }} />
+            <div className="action-banner-content">
+              <strong>Payment Verification Needed</strong>
+              <p>
+                Your room allocation for <strong>Room {actionRequiredBooking.room_number} ({actionRequiredBooking.hostel_name})</strong> is approved.
+                Please upload your payment receipt to complete your booking.
+              </p>
             </div>
-          ))}
-        </div>
+            <Link to={`/bookings/${actionRequiredBooking.id}/upload`} className="btn btn-sm action-upload-btn">
+              <Upload size={14} /> Upload Receipt
+            </Link>
+          </div>
+        )}
 
         {/* Bookings Section */}
-        <div className="dashboard-section-header">
-          <div>
-            <h2>My Hostel Bookings</h2>
-            <p className="section-subtext">Review allocation status, payment receipts, and booking details</p>
-          </div>
+        <div className="section-header">
+          <h2>My Accommodation Bookings</h2>
+          <p className="subtext">Track your semester room applications and payment verification status</p>
         </div>
 
         {loading ? (
-          <Spinner label="Loading your booking history..." />
+          <Spinner label="Fetching your hostel reservations…" />
         ) : bookings.length === 0 ? (
-          <div className="empty-state card fade-in">
-            <BookOpen size={56} />
-            <h3>No Active Bookings</h3>
-            <p>You haven't reserved any hostel rooms for the upcoming semester yet.</p>
-            <Link to="/hostels" className="btn btn-primary">
-              <Plus size={16} /> Browse Available Hostels
+          <div className="empty-state card">
+            <BookOpen size={44} />
+            <h3>No Hostel Reservations Yet</h3>
+            <p>You haven't submitted any room booking applications. Browse available hostels to reserve a room for the semester.</p>
+            <Link to="/hostels" className="btn btn-primary btn-sm" style={{ marginTop: '0.5rem' }}>
+              Browse Hostels Directory
             </Link>
           </div>
         ) : (
-          <div className="table-wrapper fade-in">
+          <div className="table-wrapper">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Booking ID</th>
-                  <th>Hostel</th>
-                  <th>Room Type</th>
-                  <th>Check-In</th>
-                  <th>Semester Price</th>
-                  <th>Status</th>
+                  <th>Ref #</th>
+                  <th>Hostel Property</th>
+                  <th>Allocated Room</th>
+                  <th>Check-In Date</th>
+                  <th>Semester Rate</th>
+                  <th>Booking Status</th>
                   <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {bookings.map((b) => (
                   <tr key={b.id}>
-                    <td className="booking-id-cell">#{b.id}</td>
-                    <td className="hostel-name-cell">{b.hostel_name}</td>
+                    <td className="ref-cell">#{b.id}</td>
+                    <td className="hostel-cell">{b.hostel_name}</td>
                     <td>
-                      <div className="room-info-cell">
-                        <span>Room {b.room_number}</span>
-                        <span className="room-subtag">{b.room_type}</span>
-                      </div>
+                      <span className="room-num">Room {b.room_number}</span>
+                      <span className="room-type-sub"> ({b.room_type})</span>
                     </td>
                     <td className="date-cell">{formatDate(b.check_in_date)}</td>
                     <td className="price-cell">{formatCurrency(b.price_per_semester)}</td>
+                    <td><StatusBadge status={b.status} /></td>
                     <td>
-                      <StatusBadge status={b.status} />
-                    </td>
-                    <td>
-                      <div className="action-buttons-group">
+                      <div className="row-actions">
                         <Link to={`/bookings/${b.id}`} className="btn btn-outline btn-sm">
                           <Eye size={14} /> Details
                         </Link>
@@ -145,128 +129,147 @@ export default function StudentDashboard() {
       </div>
 
       <style>{`
-        .dash-welcome {
+        /* ── Student Hero Identity Card ───────────────────────── */
+        .student-hero-card {
+          background: #102A43;
+          border: 1px solid #243B53;
+          border-radius: var(--radius-md);
+          padding: 1.75rem 2rem;
+          margin-bottom: 1.75rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          color: #F8FAFC;
+          flex-wrap: wrap;
+          gap: 1.25rem;
+          box-shadow: var(--shadow-sm);
+        }
+
+        .student-id-group {
           display: flex;
           align-items: center;
-          gap: 1.5rem;
-          padding: 2rem;
-          margin-bottom: 2.5rem;
-          position: relative;
-          overflow: hidden;
+          gap: 1.1rem;
         }
 
-        .welcome-avatar-container {
-          flex-shrink: 0;
-        }
-
-        .welcome-avatar {
-          width: 64px;
-          height: 64px;
+        .student-avatar {
+          width: 52px;
+          height: 52px;
           border-radius: 50%;
-          background: linear-gradient(135deg, var(--brand-500), var(--accent-500));
+          background: #2563EB;
+          border: 2px solid #38BDF8;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 1.3rem;
-          font-weight: 800;
-          color: #ffffff;
-          box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
-        }
-
-        .welcome-text-group {
-          display: flex;
-          flex-direction: column;
-          gap: 0.25rem;
-        }
-
-        .welcome-meta {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-size: 0.875rem;
-          color: var(--slate-400);
-          flex-wrap: wrap;
-        }
-
-        .meta-dot { color: var(--slate-600); }
-
-        .student-id-tag {
-          font-family: monospace;
-          color: var(--brand-300);
-          background: rgba(99, 102, 241, 0.1);
-          padding: 0.1rem 0.4rem;
-          border-radius: var(--radius-xs);
-          border: 1px solid rgba(99, 102, 241, 0.2);
-        }
-
-        .book-cta-btn {
-          margin-left: auto;
+          font-size: 1.2rem;
+          font-weight: 700;
+          color: #FFFFFF;
           flex-shrink: 0;
         }
 
-        .stats-grid {
-          margin-bottom: 3rem;
+        .student-info h1 {
+          font-size: 1.4rem;
+          font-weight: 700;
+          color: #FFFFFF;
         }
 
-        .dashboard-section-header {
+        .student-meta {
           display: flex;
-          justify-content: space-between;
-          align-items: flex-end;
-          margin-bottom: 1.25rem;
-        }
-
-        .section-subtext {
-          font-size: 0.875rem;
-          color: var(--slate-400);
+          align-items: center;
+          gap: 0.6rem;
+          font-size: 0.85rem;
+          color: #9FB3C8;
           margin-top: 0.2rem;
+          flex-wrap: wrap;
         }
 
-        .booking-id-cell {
-          font-family: monospace;
+        .student-id-pill {
+          font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+          color: #38BDF8;
+          background: rgba(56, 189, 248, 0.15);
+          border: 1px solid rgba(56, 189, 248, 0.3);
+          padding: 0.1rem 0.5rem;
+          border-radius: 999px;
+          font-size: 0.775rem;
           font-weight: 600;
-          color: var(--brand-400);
         }
 
-        .hostel-name-cell {
+        .hero-cta { flex-shrink: 0; }
+
+        /* ── Action Banner ────────────────────────────────────── */
+        .action-banner {
+          margin-bottom: 1.75rem;
+          background: #FEF3C7;
+          border: 1px solid #FCD34D;
+          color: #92400E;
+          border-radius: var(--radius-md);
+          padding: 1.1rem 1.35rem;
+          align-items: center;
+          flex-wrap: wrap;
+        }
+
+        .action-banner-content { flex: 1; min-width: 220px; }
+        .action-banner-content strong { font-size: 0.925rem; }
+        .action-banner-content p { font-size: 0.85rem; margin-top: 0.2rem; }
+
+        .action-upload-btn {
+          background: #D97706;
+          color: #FFFFFF;
+          border: 1px solid #B45309;
+          white-space: nowrap;
+        }
+        .action-upload-btn:hover { background: #B45309; }
+
+        /* ── Section Header ────────────────────────────────────── */
+        .section-header {
+          margin-bottom: 1rem;
+        }
+
+        /* ── Table Cell Customization ──────────────────────────── */
+        .ref-cell {
+          font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+          font-weight: 700;
+          color: var(--blue-primary);
+        }
+
+        .hostel-cell {
+          font-weight: 700;
+          color: var(--navy-primary);
+        }
+
+        .room-num {
           font-weight: 600;
-          color: var(--text-primary);
+          color: var(--navy-primary);
         }
 
-        .room-info-cell {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .room-subtag {
-          font-size: 0.75rem;
-          color: var(--slate-400);
+        .room-type-sub {
+          font-size: 0.775rem;
+          color: var(--text-secondary);
           text-transform: capitalize;
         }
 
         .date-cell {
-          color: var(--slate-300);
+          font-size: 0.85rem;
+          color: var(--text-secondary);
         }
 
         .price-cell {
           font-weight: 700;
-          color: var(--accent-400);
+          color: var(--success-text);
         }
 
-        .action-buttons-group {
+        .row-actions {
           display: flex;
           justify-content: flex-end;
-          gap: 0.5rem;
+          gap: 0.4rem;
+          flex-wrap: wrap;
         }
 
         @media (max-width: 768px) {
-          .dash-welcome {
+          .student-hero-card {
             flex-direction: column;
             align-items: flex-start;
           }
-          .book-cta-btn {
-            margin-left: 0;
-            width: 100%;
-          }
+          .hero-cta { width: 100%; }
         }
       `}</style>
     </div>

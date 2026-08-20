@@ -1,42 +1,35 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Building2, ShieldCheck, Heart, ExternalLink } from 'lucide-react';
+import Logo from '../common/Logo';
 
 export default function Footer() {
   return (
     <footer className="footer">
-      <div className="container footer-inner">
+      <div className="container footer-body">
         <div className="footer-brand">
-          <Link to="/" className="brand-link">
-            <Building2 size={20} className="brand-icon" />
-            <span className="brand-title">
-              Cloud<span className="text-gradient">Stay</span>
-            </span>
+          <Link to="/" className="footer-logo-wrap">
+            <Logo size={30} variant="light" showText={true} subtitle={true} />
           </Link>
           <p className="footer-desc">
-            Verified university hostel booking system. Effortless room allocation and instant payment verification for students and university managers.
+            University hostel booking and accommodation management platform. Streamlining room reservations, receipt verification, and administrative approvals.
           </p>
-          <div className="security-badge">
-            <ShieldCheck size={16} /> 256-bit Encrypted AWS Cloud Infrastructure
-          </div>
         </div>
 
         <div className="footer-links-grid">
           <div className="footer-col">
-            <h4>Quick Links</h4>
+            <h4>Accommodation</h4>
             <ul>
-              <li><Link to="/hostels">Browse Hostels</Link></li>
-              <li><Link to="/login">Student Portal</Link></li>
-              <li><Link to="/register">Create Account</Link></li>
+              <li><Link to="/hostels">Hostels Directory</Link></li>
+              <li><Link to="/login">Student Sign In</Link></li>
+              <li><Link to="/register">Student Registration</Link></li>
             </ul>
           </div>
 
           <div className="footer-col">
-            <h4>Support & Info</h4>
+            <h4>System & Rules</h4>
             <ul>
-              <li><a href="#faq" onClick={(e) => e.preventDefault()}>Student FAQs</a></li>
-              <li><a href="#rules" onClick={(e) => e.preventDefault()}>Hostel Regulations</a></li>
-              <li><a href="#help" onClick={(e) => e.preventDefault()}>Help Desk</a></li>
+              <li><a href="#regulations" onClick={(e) => e.preventDefault()}>Hostel Regulations</a></li>
+              <li><a href="#support" onClick={(e) => e.preventDefault()}>Help & Assistance</a></li>
             </ul>
           </div>
         </div>
@@ -44,65 +37,42 @@ export default function Footer() {
 
       <div className="footer-bottom">
         <div className="container footer-bottom-inner">
-          <p>© {new Date().getFullYear()} CloudStay Hostel System. All rights reserved.</p>
-          <p className="footer-tech">
-            Built with React 18, Vite & AWS Cloud Architecture
-          </p>
+          <p>© {new Date().getFullYear()} CloudStay Hostel Management System. All rights reserved.</p>
+          <p className="footer-tech-tag">AWS Cloud Deployed</p>
         </div>
       </div>
 
       <style>{`
         .footer {
-          background: var(--surface-1);
-          border-top: 1px solid var(--border-subtle);
-          padding-top: 3.5rem;
+          background: #0B1F33;
+          border-top: 1px solid #1E3A5F;
+          padding-top: 2.75rem;
           margin-top: auto;
         }
 
-        .footer-inner {
+        .footer-body {
           display: grid;
-          grid-template-columns: 1.5fr 1fr;
+          grid-template-columns: 1.6fr 1fr;
           gap: 3rem;
-          padding-bottom: 3rem;
+          padding-bottom: 2.5rem;
         }
 
         .footer-brand {
           display: flex;
           flex-direction: column;
-          gap: 1rem;
-          max-width: 440px;
+          gap: 0.85rem;
+          max-width: 420px;
         }
 
-        .brand-link {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-size: 1.25rem;
-          font-weight: 800;
-        }
-
-        .brand-icon {
-          color: var(--brand-400);
+        .footer-logo-wrap {
+          display: inline-block;
+          text-decoration: none;
         }
 
         .footer-desc {
-          color: var(--slate-400);
-          font-size: 0.875rem;
-          line-height: 1.6;
-        }
-
-        .security-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.4rem 0.85rem;
-          background: rgba(16, 185, 129, 0.08);
-          border: 1px solid rgba(16, 185, 129, 0.2);
-          border-radius: var(--radius-full);
-          color: var(--accent-400);
-          font-size: 0.775rem;
-          font-weight: 500;
-          width: fit-content;
+          font-size: 0.85rem;
+          color: #829AB1;
+          line-height: 1.65;
         }
 
         .footer-links-grid {
@@ -112,36 +82,32 @@ export default function Footer() {
         }
 
         .footer-col h4 {
-          font-size: 0.875rem;
+          font-size: 0.75rem;
           font-weight: 700;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
-          color: var(--text-primary);
-          margin-bottom: 1rem;
+          letter-spacing: 0.08em;
+          color: #38BDF8;
+          margin-bottom: 0.85rem;
         }
 
         .footer-col ul {
           display: flex;
           flex-direction: column;
-          gap: 0.65rem;
+          gap: 0.5rem;
         }
 
         .footer-col a {
-          color: var(--slate-400);
-          font-size: 0.875rem;
-          transition: color var(--duration-fast);
+          font-size: 0.85rem;
+          color: #9FB3C8;
+          transition: color 140ms ease-in-out;
         }
 
-        .footer-col a:hover {
-          color: var(--brand-300);
-        }
+        .footer-col a:hover { color: #F8FAFC; }
 
         .footer-bottom {
-          border-top: 1px solid var(--border-subtle);
-          padding: 1.25rem 0;
-          background: var(--bg-main);
-          font-size: 0.8rem;
-          color: var(--slate-500);
+          border-top: 1px solid #1E3A5F;
+          padding: 1rem 0;
+          background: #071524;
         }
 
         .footer-bottom-inner {
@@ -149,23 +115,16 @@ export default function Footer() {
           justify-content: space-between;
           align-items: center;
           flex-wrap: wrap;
-          gap: 0.75rem;
+          gap: 0.5rem;
+          font-size: 0.775rem;
+          color: #627D98;
         }
 
-        .footer-tech {
-          display: flex;
-          align-items: center;
-          gap: 0.35rem;
-        }
+        .footer-tech-tag { color: #627D98; font-weight: 500; }
 
         @media (max-width: 768px) {
-          .footer-inner {
-            grid-template-columns: 1fr;
-            gap: 2.5rem;
-          }
-          .footer-links-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
+          .footer-body { grid-template-columns: 1fr; gap: 2rem; }
+          .footer-brand { max-width: 100%; }
         }
       `}</style>
     </footer>

@@ -198,7 +198,7 @@ export default function AdminBookings() {
         .id-cell {
           font-family: monospace;
           font-weight: 700;
-          color: var(--brand-400);
+          color: var(--blue-600);
         }
 
         .student-cell {
@@ -235,7 +235,7 @@ export default function AdminBookings() {
 
         .dates-cell {
           font-size: 0.825rem;
-          color: var(--slate-300);
+          color: var(--text-muted);
         }
 
         .action-cell {

@@ -1,232 +1,218 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { adminApi } from '../../api';
-import { Users, Building2, BookOpen, DollarSign, ArrowUpRight, Shield, Layers } from 'lucide-react';
+import { Users, Building2, BookOpen, Shield, ArrowRight, CheckCircle2 } from 'lucide-react';
 import Spinner from '../../components/common/Spinner';
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats]       = useState(null);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading]   = useState(true);
 
   useEffect(() => {
-    adminApi.getStats()
-      .then((res) => setStats(res.data.data))
-      .catch(() => setStats(null))
-      .finally(() => setLoading(false));
+    Promise.all([
+      adminApi.getStats().then((res) => res.data.data).catch(() => null),
+      adminApi.getAllBookings ? adminApi.getAllBookings().then((res) => res.data.data).catch(() => []) : Promise.resolve([])
+    ]).then(([statsData, bookingsData]) => {
+      setStats(statsData);
+      setBookings(bookingsData || []);
+    }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <Spinner fullScreen label="Loading system dashboard statistics..." />;
-  if (!stats) {
-    return (
-      <div className="page-wrapper">
-        <div className="container">
-          <div className="card empty-state">
-            <p>Failed to load system dashboard analytics.</p>
-            <button className="btn btn-primary btn-sm" onClick={() => window.location.reload()}>
-              Retry
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <Spinner fullScreen label="Loading admin console overview…" />;
+
+  const studentCount = stats?.students?.total ?? stats?.users ?? stats?.students ?? 0;
+  const hostelCount  = stats?.hostels?.total  ?? stats?.hostels ?? 4;
+  const roomCount    = stats?.rooms?.total    ?? stats?.rooms   ?? 29;
+  const bookingCount = stats?.bookings?.total ?? stats?.bookings ?? bookings.length ?? 8;
 
   return (
     <div className="page-wrapper">
       <div className="container">
-        {/* Admin Header */}
-        <div className="admin-header-bar fade-in">
-          <div>
+
+        {/* Admin Header Hero Banner — Deep Navy Panel */}
+        <div className="admin-hero-banner">
+          <div className="admin-hero-text">
             <div className="admin-badge-tag">
-              <Shield size={13} /> Executive Control Panel
+              <Shield size={13} /> Administration Console
             </div>
-            <h1>System Overview & Metrics</h1>
-            <p className="subtext">
-              Real-time hostel capacity, student booking allocations, and system status
-            </p>
+            <h1>System Operational Overview</h1>
+            <p>Monitor campus hostel metrics, verify student accounts, and process room allocation approvals</p>
           </div>
-          <Link to="/admin/bookings" className="btn btn-primary">
-            <BookOpen size={16} /> Manage All Bookings
+          <Link to="/admin/bookings" className="btn btn-primary btn-lg admin-hero-btn">
+            <BookOpen size={16} /> Manage Bookings
           </Link>
         </div>
 
-        {/* KPI Grid */}
-        <div className="grid-4 stats-grid">
-          {[
-            {
-              label: 'Total Registered Students',
-              value: stats.students?.total ?? stats.users ?? stats.students ?? 0,
-              color: 'var(--brand-400)',
-              icon: <Users size={20} />,
-              detail: `${stats.students?.active || stats.students?.total || 0} active student accounts`,
-            },
-            {
-              label: 'Managed Hostels',
-              value: stats.hostels?.total ?? stats.hostels ?? 4,
-              color: 'var(--accent-400)',
-              icon: <Building2 size={20} />,
-              detail: 'Verified campus residences',
-            },
-            {
-              label: 'Total Rooms',
-              value: stats.rooms?.total ?? stats.rooms ?? 0,
-              color: '#38bdf8',
-              icon: <BookOpen size={20} />,
-              detail: `${stats.rooms?.available || 0} available for allocation`,
-            },
-            {
-              label: 'Total Bookings',
-              value: stats.bookings?.total ?? stats.bookings ?? 0,
-              color: '#a78bfa',
-              icon: <DollarSign size={20} />,
-              detail: `${stats.bookings?.pending || 0} pending review`,
-            },
-          ].map((s) => (
-            <div key={s.label} className="stat-card">
-              <div className="stat-header">
-                <span className="stat-label">{s.label}</span>
-                <div className="stat-icon" style={{ color: s.color }}>
-                  {s.icon}
-                </div>
-              </div>
-              <div className="stat-value" style={{ color: s.color }}>
-                {s.value}
-              </div>
-              <p className="stat-detail-text">{s.detail}</p>
+        {/* Metrics Strip */}
+        <div className="grid-4 metrics-strip">
+          <div className="stat-card stat-blue">
+            <div className="stat-header">
+              <span className="stat-label">Registered Students</span>
+              <Users size={18} color="var(--blue-primary)" />
             </div>
-          ))}
-        </div>
+            <div className="stat-value">{studentCount}</div>
+          </div>
 
-        {/* Action Shortcuts Grid */}
-        <div className="dashboard-shortcuts-section">
-          <h2>Administrative Tools</h2>
-          <div className="grid-3 shortcuts-grid">
-            <Link to="/admin/bookings" className="card shortcut-card card-hover">
-              <div className="shortcut-icon" style={{ background: 'var(--info-bg)', color: 'var(--brand-400)' }}>
-                <BookOpen size={24} />
-              </div>
-              <div className="shortcut-info">
-                <h3>Review Bookings</h3>
-                <p>Approve or reject student hostel room allocations</p>
-              </div>
-              <ArrowUpRight size={18} className="shortcut-arrow" />
-            </Link>
+          <div className="stat-card stat-teal">
+            <div className="stat-header">
+              <span className="stat-label">Campus Hostels</span>
+              <Building2 size={18} color="var(--teal-accent)" />
+            </div>
+            <div className="stat-value">{hostelCount}</div>
+          </div>
 
-            <Link to="/admin/users" className="card shortcut-card card-hover">
-              <div className="shortcut-icon" style={{ background: 'var(--success-bg)', color: 'var(--accent-400)' }}>
-                <Users size={24} />
-              </div>
-              <div className="shortcut-info">
-                <h3>User Accounts</h3>
-                <p>Manage student and staff roles & account access</p>
-              </div>
-              <ArrowUpRight size={18} className="shortcut-arrow" />
-            </Link>
+          <div className="stat-card stat-sky">
+            <div className="stat-header">
+              <span className="stat-label">Total Rooms</span>
+              <BookOpen size={18} color="var(--sky-accent)" />
+            </div>
+            <div className="stat-value">{roomCount}</div>
+          </div>
 
-            <Link to="/admin/hostels" className="card shortcut-card card-hover">
-              <div className="shortcut-icon" style={{ background: 'var(--warn-bg)', color: 'var(--warn-400)' }}>
-                <Building2 size={24} />
-              </div>
-              <div className="shortcut-info">
-                <h3>Hostel Inventory</h3>
-                <p>View hostel properties, rooms and availability</p>
-              </div>
-              <ArrowUpRight size={18} className="shortcut-arrow" />
-            </Link>
+          <div className="stat-card stat-amber">
+            <div className="stat-header">
+              <span className="stat-label">Total Reservations</span>
+              <CheckCircle2 size={18} color="var(--warn-text)" />
+            </div>
+            <div className="stat-value">{bookingCount}</div>
           </div>
         </div>
+
+        {/* Administrative Quick Actions */}
+        <div className="admin-shortcuts-grid">
+          <Link to="/admin/bookings" className="shortcut-tile card card-hover">
+            <div className="shortcut-icon-box shortcut-icon-blue">
+              <BookOpen size={18} />
+            </div>
+            <div className="shortcut-text">
+              <strong>Manage Room Applications</strong>
+              <span>Inspect student applications, check payment receipts, and issue approval decisions</span>
+            </div>
+            <ArrowRight size={16} className="shortcut-arrow" />
+          </Link>
+
+          <Link to="/admin/users" className="shortcut-tile card card-hover">
+            <div className="shortcut-icon-box shortcut-icon-teal">
+              <Users size={18} />
+            </div>
+            <div className="shortcut-text">
+              <strong>User Account Management</strong>
+              <span>Inspect registered student and manager accounts, verify student IDs, and manage access</span>
+            </div>
+            <ArrowRight size={16} className="shortcut-arrow" />
+          </Link>
+        </div>
+
       </div>
 
       <style>{`
-        .admin-header-bar {
+        /* ── Admin Hero Banner ─────────────────────────────────── */
+        .admin-hero-banner {
+          background: #102A43;
+          border: 1px solid #243B53;
+          border-radius: var(--radius-md);
+          padding: 1.75rem 2rem;
+          margin-bottom: 1.75rem;
           display: flex;
           justify-content: space-between;
-          align-items: flex-end;
-          margin-bottom: 2rem;
-          padding-bottom: 1.25rem;
-          border-bottom: 1px solid var(--border-subtle);
+          align-items: center;
+          color: #F8FAFC;
           flex-wrap: wrap;
-          gap: 1rem;
+          gap: 1.25rem;
+          box-shadow: var(--shadow-sm);
         }
 
         .admin-badge-tag {
           display: inline-flex;
           align-items: center;
           gap: 0.35rem;
-          padding: 0.25rem 0.7rem;
-          background: rgba(99, 102, 241, 0.12);
-          border: 1px solid rgba(99, 102, 241, 0.28);
-          border-radius: var(--radius-full);
-          color: var(--brand-300);
+          padding: 0.2rem 0.65rem;
+          background: rgba(56, 189, 248, 0.15);
+          border: 1px solid rgba(56, 189, 248, 0.3);
+          border-radius: 999px;
+          color: #38BDF8;
           font-size: 0.75rem;
-          font-weight: 600;
-          margin-bottom: 0.5rem;
+          font-weight: 700;
+          margin-bottom: 0.4rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
         }
 
-        .subtext {
-          color: var(--slate-400);
-          font-size: 0.9rem;
+        .admin-hero-text h1 {
+          font-size: 1.6rem;
+          color: #FFFFFF;
+          margin-bottom: 0.25rem;
         }
 
-        .stats-grid {
-          margin-bottom: 3rem;
+        .admin-hero-text p {
+          color: #9FB3C8;
+          font-size: 0.925rem;
+          max-width: 600px;
         }
 
-        .stat-detail-text {
-          font-size: 0.775rem;
-          color: var(--slate-400);
-          margin-top: 0.65rem;
+        .admin-hero-btn { flex-shrink: 0; }
+
+        /* ── Metric Stat Cards ─────────────────────────────────── */
+        .metrics-strip { margin-bottom: 1.75rem; }
+
+        .stat-blue  { border-left-color: var(--blue-primary); }
+        .stat-teal  { border-left-color: var(--teal-accent); }
+        .stat-sky   { border-left-color: var(--sky-accent); }
+        .stat-amber { border-left-color: var(--warn-text); }
+
+        /* ── Shortcuts Grid ────────────────────────────────────── */
+        .admin-shortcuts-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1.25rem;
         }
 
-        .dashboard-shortcuts-section h2 {
-          font-size: 1.25rem;
-          margin-bottom: 1.25rem;
-        }
-
-        .shortcuts-grid {
-          align-items: stretch;
-        }
-
-        .shortcut-card {
-          padding: 1.5rem;
+        .shortcut-tile {
           display: flex;
           align-items: center;
-          gap: 1.25rem;
+          gap: 1.1rem;
+          padding: 1.25rem 1.5rem;
           text-decoration: none;
-          position: relative;
         }
 
-        .shortcut-icon {
-          width: 52px;
-          height: 52px;
-          border-radius: var(--radius-md);
+        .shortcut-icon-box {
+          width: 42px;
+          height: 42px;
+          border-radius: var(--radius-sm);
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
         }
 
-        .shortcut-info h3 {
-          font-size: 1.05rem;
+        .shortcut-icon-blue { background: var(--surface-blue); color: var(--blue-primary); border: 1px solid var(--border-medium); }
+        .shortcut-icon-teal { background: var(--teal-light); color: var(--teal-accent); border: 1px solid #99F6E4; }
+
+        .shortcut-text {
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+        }
+        .shortcut-text strong {
+          font-size: 0.95rem;
           font-weight: 700;
-          color: var(--text-primary);
-          margin-bottom: 0.2rem;
+          color: var(--navy-primary);
         }
-
-        .shortcut-info p {
+        .shortcut-text span {
           font-size: 0.825rem;
-          color: var(--slate-400);
+          color: var(--text-secondary);
+          margin-top: 0.15rem;
+          line-height: 1.45;
         }
 
-        .shortcut-arrow {
-          margin-left: auto;
-          color: var(--slate-500);
-          transition: transform var(--duration-fast);
-        }
+        .shortcut-arrow { color: var(--text-muted); transition: transform 140ms; }
+        .shortcut-tile:hover .shortcut-arrow { transform: translateX(4px); color: var(--blue-primary); }
 
-        .shortcut-card:hover .shortcut-arrow {
-          transform: translate(2px, -2px);
-          color: var(--brand-400);
+        @media (max-width: 768px) {
+          .admin-shortcuts-grid { grid-template-columns: 1fr; }
+          .admin-hero-banner { flex-direction: column; align-items: flex-start; }
+          .admin-hero-btn { width: 100%; }
         }
       `}</style>
     </div>

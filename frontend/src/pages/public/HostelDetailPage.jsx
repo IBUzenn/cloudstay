@@ -8,10 +8,7 @@ import {
   BedDouble,
   Users,
   ChevronLeft,
-  Filter,
-  CheckCircle2,
-  Sparkles,
-  Info
+  CheckCircle2
 } from 'lucide-react';
 import { hostelApi, roomApi } from '../../api';
 import { useAuth } from '../../context/AuthContext';
@@ -61,7 +58,7 @@ export default function HostelDetailPage() {
     }
   };
 
-  if (loading) return <Spinner fullScreen label="Loading hostel details..." />;
+  if (loading) return <Spinner fullScreen label="Loading hostel details…" />;
   if (!hostel) return null;
 
   const amenities = Array.isArray(hostel.amenities) ? hostel.amenities : [];
@@ -69,40 +66,38 @@ export default function HostelDetailPage() {
   return (
     <div className="page-wrapper">
       <div className="container">
-        {/* Navigation Breadcrumb */}
+
+        {/* Back navigation */}
         <button
-          className="btn btn-outline btn-sm back-button"
+          className="btn btn-outline btn-sm back-btn"
           onClick={() => navigate(-1)}
         >
-          <ChevronLeft size={16} /> Back to Hostels
+          <ChevronLeft size={15} /> Back to Directory
         </button>
 
-        {/* Hostel Header Banner */}
-        <div className="hostel-detail-banner card fade-in">
-          <div className="banner-top">
-            <div className="hostel-badge-avatar">
-              <Building2 size={36} />
+        {/* Hostel header */}
+        <div className="hostel-header card">
+          <div className="hostel-header-body">
+            <div className="hostel-icon-lg">
+              <Building2 size={26} />
             </div>
 
-            <div className="hostel-meta-main">
-              <div className="meta-header-row">
+            <div className="hostel-meta">
+              <div className="hostel-title-row">
                 <h1>{hostel.name}</h1>
                 <span className="verified-chip">
-                  <CheckCircle2 size={13} /> Verified Campus Residence
+                  <CheckCircle2 size={12} /> Campus Verified
                 </span>
               </div>
 
-              <p className="location-text">
-                <MapPin size={15} /> {hostel.location}
+              <p className="hostel-location">
+                <MapPin size={13} /> {hostel.location}
               </p>
 
-              {/* Amenity Pills */}
               {amenities.length > 0 && (
-                <div className="amenity-chip-container">
+                <div className="amenity-row">
                   {amenities.map((a) => (
-                    <span key={a} className="amenity-pill">
-                      <Sparkles size={12} /> {a}
-                    </span>
+                    <span key={a} className="amenity-chip">{a}</span>
                   ))}
                 </div>
               )}
@@ -110,71 +105,64 @@ export default function HostelDetailPage() {
           </div>
 
           {hostel.description && (
-            <p className="hostel-full-desc">{hostel.description}</p>
+            <p className="hostel-description">{hostel.description}</p>
           )}
 
-          {/* Contact Bar */}
-          <div className="hostel-contact-bar">
-            {hostel.contact_email && (
-              <span className="contact-item">
-                <Mail size={15} /> {hostel.contact_email}
-              </span>
-            )}
-            {hostel.contact_phone && (
-              <span className="contact-item">
-                <Phone size={15} /> {hostel.contact_phone}
-              </span>
-            )}
-          </div>
+          {(hostel.contact_email || hostel.contact_phone) && (
+            <div className="hostel-contact">
+              {hostel.contact_email && (
+                <span className="contact-item">
+                  <Mail size={13} /> {hostel.contact_email}
+                </span>
+              )}
+              {hostel.contact_phone && (
+                <span className="contact-item">
+                  <Phone size={13} /> {hostel.contact_phone}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Rooms Listing Section */}
+        {/* Rooms section */}
         <section className="rooms-section">
-          <div className="rooms-section-header">
+          <div className="rooms-section-top">
             <div>
-              <h2>Room Allocations & Rates</h2>
-              <p className="section-subtext">
-                Select a room type to review capacity and reserve for the upcoming semester
-              </p>
+              <h2>Available Rooms</h2>
+              <p className="subtext">Select a room to view rates and submit a booking application</p>
             </div>
 
-            {/* Filter Bar */}
-            <div className="room-filters">
-              <div className="filter-select-wrapper">
-                <select
-                  className="form-input filter-select"
-                  value={filter.roomType}
-                  onChange={(e) => handleFilterChange({ roomType: e.target.value })}
-                >
-                  <option value="">All Room Types</option>
-                  <option value="single">Single Room</option>
-                  <option value="double">Double Room</option>
-                  <option value="triple">Triple Room</option>
-                  <option value="suite">Suite</option>
-                </select>
-              </div>
+            <div className="room-filter-group">
+              <select
+                className="form-input room-filter-select"
+                value={filter.roomType}
+                onChange={(e) => handleFilterChange({ roomType: e.target.value })}
+              >
+                <option value="">All Types</option>
+                <option value="single">Single</option>
+                <option value="double">Double</option>
+                <option value="triple">Triple</option>
+                <option value="suite">Suite</option>
+              </select>
 
-              <div className="filter-select-wrapper">
-                <select
-                  className="form-input filter-select"
-                  value={filter.status}
-                  onChange={(e) => handleFilterChange({ status: e.target.value })}
-                >
-                  <option value="available">Available Only</option>
-                  <option value="">All Statuses</option>
-                  <option value="booked">Booked</option>
-                  <option value="maintenance">Maintenance</option>
-                </select>
-              </div>
+              <select
+                className="form-input room-filter-select"
+                value={filter.status}
+                onChange={(e) => handleFilterChange({ status: e.target.value })}
+              >
+                <option value="available">Available Only</option>
+                <option value="">All Statuses</option>
+                <option value="booked">Booked</option>
+                <option value="maintenance">Maintenance</option>
+              </select>
             </div>
           </div>
 
-          {/* Rooms Grid */}
           {rooms.length === 0 ? (
             <div className="empty-state card">
-              <BedDouble size={48} />
-              <h3>No Rooms Match Your Criteria</h3>
-              <p>Try clearing your status or room type filters to view more options.</p>
+              <BedDouble size={36} />
+              <h3>No Rooms Match</h3>
+              <p>Try adjusting your filters to see more options.</p>
               <button
                 className="btn btn-outline btn-sm"
                 onClick={() => handleFilterChange({ status: '', roomType: '' })}
@@ -186,32 +174,28 @@ export default function HostelDetailPage() {
             <div className="grid-3">
               {rooms.map((room) => (
                 <div key={room.id} className="room-card card card-hover">
-                  <div className="room-card-header">
+                  <div className="room-card-top">
                     <div>
                       <span className="room-number">Room {room.room_number}</span>
-                      <span className="room-type-tag">
+                      <span className="room-type-label">
                         {ROOM_TYPE_LABELS[room.room_type] || room.room_type}
                       </span>
                     </div>
                     <StatusBadge status={room.status} />
                   </div>
 
-                  <div className="room-specs">
-                    <span className="spec-item">
-                      <Users size={14} /> Capacity: {room.capacity} Student{room.capacity > 1 ? 's' : ''}
-                    </span>
+                  <div className="room-capacity">
+                    <Users size={13} /> Capacity: {room.capacity} student{room.capacity > 1 ? 's' : ''}
                   </div>
 
                   {room.description && (
-                    <p className="room-description">{room.description}</p>
+                    <p className="room-desc">{room.description}</p>
                   )}
 
-                  <div className="room-pricing-row">
-                    <div>
-                      <span className="price-tag">
-                        {formatCurrency(room.price_per_semester)}
-                      </span>
-                      <span className="price-period">/ semester</span>
+                  <div className="room-card-footer">
+                    <div className="room-price-group">
+                      <span className="room-price">{formatCurrency(room.price_per_semester)}</span>
+                      <span className="room-price-sub">/ semester</span>
                     </div>
 
                     {user?.role === 'student' && room.status === 'available' && (
@@ -219,7 +203,7 @@ export default function HostelDetailPage() {
                         className="btn btn-primary btn-sm"
                         onClick={() => navigate(`/book/${room.id}`, { state: { room, hostel } })}
                       >
-                        Reserve Room
+                        Reserve
                       </button>
                     )}
 
@@ -237,215 +221,202 @@ export default function HostelDetailPage() {
             </div>
           )}
         </section>
+
       </div>
 
       <style>{`
-        .back-button {
-          margin-bottom: 1.5rem;
-        }
+        .back-btn { margin-bottom: 1.25rem; }
 
-        .hostel-detail-banner {
-          padding: 2.25rem;
-          margin-bottom: 3rem;
+        /* ── Hostel header ──────────────────────────────────── */
+        .hostel-header {
+          padding: 1.5rem;
+          margin-bottom: 2rem;
           display: flex;
           flex-direction: column;
-          gap: 1.5rem;
+          gap: 1rem;
         }
 
-        .banner-top {
+        .hostel-header-body {
           display: flex;
-          gap: 1.5rem;
+          gap: 1.1rem;
           align-items: flex-start;
         }
 
-        .hostel-badge-avatar {
-          width: 68px;
-          height: 68px;
-          border-radius: var(--radius-lg);
-          background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
+        .hostel-icon-lg {
+          width: 50px;
+          height: 50px;
+          border-radius: var(--radius-md);
+          background: var(--blue-50);
+          border: 1px solid var(--blue-100);
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #ffffff;
-          box-shadow: 0 0 24px rgba(99, 102, 241, 0.35);
+          color: var(--blue-600);
           flex-shrink: 0;
         }
 
-        .hostel-meta-main {
+        .hostel-meta {
           display: flex;
           flex-direction: column;
-          gap: 0.5rem;
+          gap: 0.4rem;
+          flex: 1;
         }
 
-        .meta-header-row {
+        .hostel-title-row {
           display: flex;
           align-items: center;
-          gap: 1rem;
+          gap: 0.75rem;
           flex-wrap: wrap;
         }
+
+        .hostel-title-row h1 { font-size: 1.5rem; }
 
         .verified-chip {
           display: inline-flex;
           align-items: center;
-          gap: 0.35rem;
-          padding: 0.25rem 0.7rem;
+          gap: 0.25rem;
+          padding: 0.2rem 0.55rem;
+          font-size: 0.72rem;
+          font-weight: 600;
           background: var(--success-bg);
           border: 1px solid var(--success-border);
-          border-radius: var(--radius-full);
-          color: var(--accent-400);
-          font-size: 0.75rem;
-          font-weight: 600;
+          border-radius: 999px;
+          color: var(--success-text);
         }
 
-        .location-text {
+        .hostel-location {
           display: flex;
-          align-items: center;
-          gap: 0.4rem;
-          color: var(--slate-300);
-          font-size: 0.925rem;
-        }
-
-        .amenity-chip-container {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.4rem;
-          margin-top: 0.25rem;
-        }
-
-        .amenity-pill {
-          display: inline-flex;
           align-items: center;
           gap: 0.3rem;
-          font-size: 0.75rem;
-          padding: 0.25rem 0.65rem;
-          background: rgba(99, 102, 241, 0.1);
-          border: 1px solid rgba(99, 102, 241, 0.25);
-          border-radius: var(--radius-full);
-          color: var(--brand-300);
-        }
-
-        .hostel-full-desc {
-          color: var(--slate-300);
-          font-size: 0.95rem;
-          line-height: 1.7;
-          border-top: 1px solid var(--border-subtle);
-          padding-top: 1.25rem;
-        }
-
-        .hostel-contact-bar {
-          display: flex;
-          gap: 2rem;
           font-size: 0.875rem;
-          color: var(--slate-400);
-          border-top: 1px solid var(--border-subtle);
-          padding-top: 1rem;
+          color: var(--text-muted);
+        }
+
+        .amenity-row {
+          display: flex;
           flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+
+        .amenity-chip {
+          font-size: 0.72rem;
+          padding: 0.15rem 0.55rem;
+          background: var(--surface-subtle);
+          border: 1px solid var(--border-medium);
+          border-radius: 999px;
+          color: var(--text-secondary);
+          font-weight: 500;
+        }
+
+        .hostel-description {
+          font-size: 0.875rem;
+          color: var(--text-secondary);
+          line-height: 1.65;
+          padding-top: 0.75rem;
+          border-top: 1px solid var(--border-subtle);
+        }
+
+        .hostel-contact {
+          display: flex;
+          gap: 1.25rem;
+          flex-wrap: wrap;
+          padding-top: 0.75rem;
+          border-top: 1px solid var(--border-subtle);
         }
 
         .contact-item {
           display: flex;
           align-items: center;
-          gap: 0.4rem;
+          gap: 0.35rem;
+          font-size: 0.825rem;
+          color: var(--text-muted);
         }
 
+        /* ── Rooms section ──────────────────────────────────── */
         .rooms-section {
           display: flex;
           flex-direction: column;
-          gap: 2rem;
+          gap: 1.25rem;
         }
 
-        .rooms-section-header {
+        .rooms-section-top {
           display: flex;
           justify-content: space-between;
           align-items: flex-end;
           flex-wrap: wrap;
           gap: 1rem;
+          padding-bottom: 1rem;
           border-bottom: 1px solid var(--border-subtle);
-          padding-bottom: 1.25rem;
         }
 
-        .section-subtext {
-          font-size: 0.875rem;
-          color: var(--slate-400);
-          margin-top: 0.25rem;
-        }
-
-        .room-filters {
+        .room-filter-group {
           display: flex;
-          gap: 0.75rem;
+          gap: 0.5rem;
+          flex-wrap: wrap;
         }
 
-        .filter-select {
-          padding: 0.5rem 1rem;
-          font-size: 0.85rem;
+        .room-filter-select {
+          padding: 0.4rem 0.7rem;
+          font-size: 0.825rem;
           width: auto;
-          min-width: 150px;
+          min-width: 130px;
+          background: var(--surface-card);
         }
 
+        /* ── Room card ──────────────────────────────────────── */
         .room-card {
-          padding: 1.5rem;
+          padding: 1.15rem;
           display: flex;
           flex-direction: column;
-          gap: 1rem;
+          gap: 0.7rem;
         }
 
-        .room-card-header {
+        .room-card-top {
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
         }
 
         .room-number {
-          font-size: 1.2rem;
+          display: block;
+          font-size: 1rem;
           font-weight: 700;
           color: var(--text-primary);
+        }
+
+        .room-type-label {
           display: block;
+          font-size: 0.775rem;
+          color: var(--text-muted);
+          margin-top: 0.1rem;
         }
 
-        .room-type-tag {
-          font-size: 0.8rem;
-          color: var(--slate-400);
-        }
-
-        .room-specs {
-          display: flex;
-          gap: 1rem;
-          font-size: 0.85rem;
-          color: var(--slate-300);
-        }
-
-        .spec-item {
+        .room-capacity {
           display: flex;
           align-items: center;
           gap: 0.35rem;
+          font-size: 0.825rem;
+          color: var(--text-secondary);
         }
 
-        .room-description {
-          font-size: 0.85rem;
-          color: var(--slate-400);
+        .room-desc {
+          font-size: 0.8rem;
+          color: var(--text-muted);
           line-height: 1.5;
         }
 
-        .room-pricing-row {
+        .room-card-footer {
           display: flex;
           justify-content: space-between;
           align-items: center;
           border-top: 1px solid var(--border-subtle);
-          padding-top: 1rem;
+          padding-top: 0.7rem;
           margin-top: auto;
         }
 
-        .price-tag {
-          font-size: 1.25rem;
-          font-weight: 800;
-          color: var(--accent-400);
-        }
-
-        .price-period {
-          font-size: 0.75rem;
-          color: var(--slate-400);
-          margin-left: 0.25rem;
-        }
+        .room-price-group { display: flex; align-items: baseline; gap: 0.2rem; }
+        .room-price { font-size: 1.05rem; font-weight: 700; color: var(--emerald-600); }
+        .room-price-sub { font-size: 0.75rem; color: var(--text-muted); }
       `}</style>
     </div>
   );

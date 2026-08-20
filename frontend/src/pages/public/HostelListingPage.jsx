@@ -10,10 +10,8 @@ import {
   Car,
   Wind,
   Shield,
-  Sparkles,
   BedDouble,
-  X,
-  SlidersHorizontal
+  X
 } from 'lucide-react';
 import { hostelApi } from '../../api';
 import Spinner, { SkeletonCard } from '../../components/common/Spinner';
@@ -25,14 +23,6 @@ const AMENITY_ICONS = {
   'Air Conditioning': <Wind size={13} />,
   Security: <Shield size={13} />,
 };
-
-// Generates a reproducible visual gradient header for each hostel
-const HOSTEL_GRADIENTS = [
-  'linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(30, 27, 75, 0.8) 100%)',
-  'linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(6, 78, 59, 0.8) 100%)',
-  'linear-gradient(135deg, rgba(168, 85, 247, 0.3) 0%, rgba(88, 28, 135, 0.8) 100%)',
-  'linear-gradient(135deg, rgba(245, 158, 11, 0.3) 0%, rgba(120, 53, 15, 0.8) 100%)',
-];
 
 export default function HostelListingPage() {
   const [hostels, setHostels] = useState([]);
@@ -67,7 +57,6 @@ export default function HostelListingPage() {
     setSelectedAmenity('');
   };
 
-  // Filter hostels locally by selected amenity tag if present
   const filteredHostels = hostels.filter(h => {
     if (!selectedAmenity) return true;
     const list = Array.isArray(h.amenities) ? h.amenities : [];
@@ -75,76 +64,67 @@ export default function HostelListingPage() {
   });
 
   return (
-    <div>
-      {/* Hero Section */}
-      <section className="listing-hero">
-        <div className="container hero-container fade-in">
-          <div className="hero-badge">
-            <Sparkles size={14} /> Official Student Housing Portal
-          </div>
-          <h1>
-            Find & Reserve Your <br />
-            <span className="text-gradient">Ideal University Hostel</span>
-          </h1>
-          <p className="hero-subtitle">
-            Browse verified campus accommodations with real-time room availability and instant booking confirmation.
-          </p>
+    <div className="page-wrapper">
+      <div className="container">
 
-          {/* Search Form */}
-          <form onSubmit={handleSearch} className="search-box">
-            <div className="search-input-group">
-              <Search size={18} className="search-icon" />
+        {/* Header Hero Banner — Tinted Navy/Blue Surface */}
+        <div className="dir-hero-banner">
+          <div className="dir-hero-text">
+            <h1>Campus Hostels Directory</h1>
+            <p>Browse available student accommodation blocks, view room counts, and submit allocation requests</p>
+          </div>
+          {!loading && (
+            <div className="dir-count-pill">
+              <Building2 size={15} />
+              <span>{filteredHostels.length} {filteredHostels.length === 1 ? 'Hostel' : 'Hostels'} Listed</span>
+            </div>
+          )}
+        </div>
+
+        {/* Filter Toolbar — Soft Tinted Panel */}
+        <div className="filter-toolbar-panel">
+          <form onSubmit={handleSearch} className="search-form">
+            <div className="search-input-wrap">
+              <Search size={16} className="search-icon" />
               <input
                 type="text"
-                placeholder="Search hostel name or campus location..."
+                placeholder="Search hostel name or campus location…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="search-field"
+                className="form-input search-field"
               />
               {search && (
-                <button type="button" onClick={() => setSearch('')} className="clear-btn">
-                  <X size={16} />
+                <button type="button" onClick={() => setSearch('')} className="clear-btn" aria-label="Clear search">
+                  <X size={14} />
                 </button>
               )}
             </div>
-            <button type="submit" className="btn btn-primary btn-lg">
-              Search Hostels
+            <button type="submit" className="btn btn-primary search-submit">
+              Search
             </button>
           </form>
 
-          {/* Quick amenity filters */}
-          <div className="quick-filter-tags">
-            <span className="filter-label"><SlidersHorizontal size={13} /> Filter by:</span>
-            {['WiFi', 'Air Conditioning', 'Cafeteria', 'Parking'].map(amenity => (
+          <div className="filter-chips-row">
+            <span className="filter-label-text">Facilities:</span>
+            {['WiFi', 'Air Conditioning', 'Cafeteria', 'Parking', 'Security'].map(amenity => (
               <button
                 key={amenity}
                 type="button"
-                className={`tag-filter-btn ${selectedAmenity === amenity ? 'active' : ''}`}
+                className={`filter-chip${selectedAmenity === amenity ? ' chip-active' : ''}`}
                 onClick={() => setSelectedAmenity(selectedAmenity === amenity ? '' : amenity)}
               >
                 {AMENITY_ICONS[amenity]} {amenity}
               </button>
             ))}
+            {selectedAmenity && (
+              <button type="button" onClick={() => setSelectedAmenity('')} className="chip-clear-btn">
+                Clear filter
+              </button>
+            )}
           </div>
         </div>
-      </section>
 
-      {/* Main Listing Section */}
-      <main className="container listing-body">
-        <div className="listing-header">
-          <div>
-            <h2>
-              {query ? `Search results for "${query}"` : 'All Hostels'}
-            </h2>
-            <p className="listing-subtext">
-              Showing verified university residences for current semester allocation
-            </p>
-          </div>
-          <span className="results-badge">
-            {filteredHostels.length} Hostel{filteredHostels.length !== 1 ? 's' : ''} Available
-          </span>
-        </div>
-
+        {/* Hostel Cards Grid */}
         {loading ? (
           <div className="grid-3">
             <SkeletonCard />
@@ -153,73 +133,87 @@ export default function HostelListingPage() {
           </div>
         ) : filteredHostels.length === 0 ? (
           <div className="empty-state card">
-            <Building2 size={56} />
-            <h3>No Hostels Found</h3>
-            <p>We couldn't find any hostels matching your criteria.</p>
+            <Building2 size={44} />
+            <h3>No Hostels Match Your Criteria</h3>
+            <p>We couldn't find any campus hostels matching your search query or facility filter.</p>
             {(query || selectedAmenity) && (
               <button className="btn btn-outline btn-sm" onClick={clearSearch}>
-                Clear Search & Filters
+                Clear Filters & Show All
               </button>
             )}
           </div>
         ) : (
-          <div className="grid-3">
-            {filteredHostels.map((h, idx) => (
-              <HostelCard key={h.id} hostel={h} gradientIndex={idx} />
+          <div className="grid-3 hostel-grid">
+            {filteredHostels.map((h) => (
+              <HostelCard key={h.id} hostel={h} />
             ))}
           </div>
         )}
-      </main>
+      </div>
 
       <style>{`
-        .listing-hero {
-          padding: 4.5rem 0 3.5rem;
-          background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99, 102, 241, 0.15), transparent 70%);
-          border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .hero-container {
+        /* ── Hero Banner Header ────────────────────────────────── */
+        .dir-hero-banner {
+          background: #102A43;
+          border: 1px solid #243B53;
+          border-radius: var(--radius-md);
+          padding: 1.75rem 2rem;
+          margin-bottom: 1.5rem;
+          color: #F8FAFC;
           display: flex;
-          flex-direction: column;
+          justify-content: space-between;
           align-items: center;
-          text-align: center;
-          max-width: 720px;
+          flex-wrap: wrap;
+          gap: 1.25rem;
+          box-shadow: var(--shadow-sm);
         }
 
-        .hero-badge {
+        .dir-hero-text h1 {
+          font-size: 1.65rem;
+          color: #FFFFFF;
+          margin-bottom: 0.25rem;
+        }
+
+        .dir-hero-text p {
+          color: #9FB3C8;
+          font-size: 0.925rem;
+          max-width: 640px;
+        }
+
+        .dir-count-pill {
           display: inline-flex;
           align-items: center;
-          gap: 0.4rem;
-          padding: 0.35rem 0.9rem;
-          background: rgba(99, 102, 241, 0.12);
-          border: 1px solid rgba(99, 102, 241, 0.28);
-          border-radius: var(--radius-full);
-          color: var(--brand-300);
+          gap: 0.45rem;
+          padding: 0.4rem 0.85rem;
+          background: rgba(56, 189, 248, 0.15);
+          border: 1px solid rgba(56, 189, 248, 0.35);
+          border-radius: 999px;
+          color: #38BDF8;
           font-size: 0.8rem;
-          font-weight: 600;
-          margin-bottom: 1.25rem;
+          font-weight: 700;
+          white-space: nowrap;
         }
 
-        .hero-subtitle {
-          color: var(--slate-300);
-          font-size: 1.1rem;
-          margin: 1rem 0 2rem;
-          max-width: 580px;
+        /* ── Filter Toolbar Panel ──────────────────────────────── */
+        .filter-toolbar-panel {
+          background: var(--surface-blue);
+          border: 1px solid var(--border-subtle);
+          border-radius: var(--radius-md);
+          padding: 1.1rem 1.25rem;
+          margin-bottom: 1.75rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.85rem;
+          box-shadow: var(--shadow-sm);
         }
 
-        .search-box {
+        .search-form {
           display: flex;
           gap: 0.75rem;
-          width: 100%;
-          max-width: 620px;
-          background: var(--surface-card);
-          padding: 0.5rem;
-          border-radius: var(--radius-lg);
-          border: 1px solid var(--border-medium);
-          box-shadow: var(--shadow-lg), var(--shadow-glow);
+          align-items: center;
         }
 
-        .search-input-group {
+        .search-input-wrap {
           position: relative;
           flex: 1;
           display: flex;
@@ -228,321 +222,307 @@ export default function HostelListingPage() {
 
         .search-icon {
           position: absolute;
-          left: 1rem;
-          color: var(--slate-400);
+          left: 0.85rem;
+          color: var(--text-muted);
           pointer-events: none;
         }
 
         .search-field {
-          width: 100%;
-          padding: 0.75rem 2.5rem 0.75rem 2.75rem;
-          background: transparent;
-          border: none;
-          outline: none;
-          color: var(--text-primary);
-          font-size: 0.95rem;
+          padding-left: 2.5rem;
+          padding-right: 2.2rem;
+          background: #FFFFFF;
+          border-color: var(--border-subtle);
+          box-shadow: inset 0 1px 2px rgba(16, 42, 67, 0.04);
         }
 
         .clear-btn {
           position: absolute;
           right: 0.75rem;
-          color: var(--slate-400);
-          padding: 0.25rem;
+          color: var(--text-muted);
+          padding: 0.2rem;
+          display: flex;
         }
-        .clear-btn:hover { color: var(--text-primary); }
+        .clear-btn:hover { color: var(--navy-primary); }
 
-        .quick-filter-tags {
+        .search-submit { flex-shrink: 0; }
+
+        /* ── Filter Chips Row ──────────────────────────────────── */
+        .filter-chips-row {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: 0.45rem;
           flex-wrap: wrap;
-          justify-content: center;
-          margin-top: 1.5rem;
+          padding-top: 0.65rem;
+          border-top: 1px solid var(--border-medium);
+        }
+
+        .filter-label-text {
           font-size: 0.8rem;
+          font-weight: 700;
+          color: var(--navy-primary);
+          margin-right: 0.25rem;
+          white-space: nowrap;
         }
 
-        .filter-label {
-          color: var(--slate-400);
-          display: flex;
-          align-items: center;
-          gap: 0.35rem;
-          font-weight: 500;
-        }
-
-        .tag-filter-btn {
+        .filter-chip {
           display: inline-flex;
           align-items: center;
           gap: 0.35rem;
-          padding: 0.3rem 0.75rem;
-          background: rgba(255, 255, 255, 0.03);
-          border: 1px solid var(--border-subtle);
-          border-radius: var(--radius-full);
-          color: var(--slate-300);
+          padding: 0.25rem 0.7rem;
           font-size: 0.775rem;
-          transition: all var(--duration-fast);
-        }
-        .tag-filter-btn:hover, .tag-filter-btn.active {
-          background: rgba(99, 102, 241, 0.15);
-          border-color: var(--brand-500);
-          color: var(--brand-300);
-        }
-
-        .listing-body {
-          padding-top: 3rem;
-          padding-bottom: 4rem;
-        }
-
-        .listing-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-end;
-          margin-bottom: 2rem;
-          padding-bottom: 1rem;
-          border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .listing-subtext {
-          font-size: 0.875rem;
-          color: var(--slate-400);
-          margin-top: 0.25rem;
-        }
-
-        .results-badge {
-          font-size: 0.8rem;
           font-weight: 600;
-          padding: 0.35rem 0.85rem;
-          background: var(--surface-2);
-          border-radius: var(--radius-full);
-          color: var(--brand-300);
+          background: #FFFFFF;
           border: 1px solid var(--border-subtle);
+          border-radius: 999px;
+          color: var(--text-secondary);
+          transition: all 140ms ease-in-out;
+          white-space: nowrap;
         }
 
-        @media (max-width: 640px) {
-          .search-box {
-            flex-direction: column;
-          }
-          .search-box .btn {
-            width: 100%;
-          }
+        .filter-chip:hover {
+          border-color: var(--blue-primary);
+          color: var(--blue-primary);
+          background: #FFFFFF;
         }
+
+        .filter-chip.chip-active {
+          background: var(--navy-primary);
+          border-color: var(--navy-primary);
+          color: #FFFFFF;
+        }
+
+        .chip-clear-btn {
+          font-size: 0.775rem;
+          color: var(--blue-primary);
+          font-weight: 600;
+          text-decoration: underline;
+          padding: 0.15rem 0.4rem;
+        }
+        .chip-clear-btn:hover { color: var(--navy-primary); }
+
+        /* ── Hostel Cards Grid ─────────────────────────────────── */
+        .hostel-grid { align-items: stretch; }
       `}</style>
     </div>
   );
 }
 
-function HostelCard({ hostel, gradientIndex }) {
-  const amenities = Array.isArray(hostel.amenities) ? hostel.amenities : [];
-  const gradient = HOSTEL_GRADIENTS[gradientIndex % HOSTEL_GRADIENTS.length];
+function HostelCard({ hostel }) {
+  const amenities   = Array.isArray(hostel.amenities) ? hostel.amenities : [];
   const isAvailable = hostel.available_rooms > 0;
-  const occupancyPercent = hostel.total_rooms > 0 
-    ? Math.round(((hostel.total_rooms - hostel.available_rooms) / hostel.total_rooms) * 100)
-    : 0;
 
   return (
     <Link to={`/hostels/${hostel.id}`} className="hostel-card card card-hover">
-      {/* Card Header Visual Placeholder */}
-      <div className="card-visual" style={{ background: gradient }}>
-        <div className="visual-badge">
-          <Building2 size={24} />
+
+      <div className="hc-header">
+        <div className="hc-icon-box">
+          <Building2 size={20} />
         </div>
-        <div className="availability-chip" style={{ background: isAvailable ? 'var(--success-bg)' : 'var(--error-bg)', color: isAvailable ? 'var(--accent-400)' : 'var(--error-400)', borderColor: isAvailable ? 'var(--success-border)' : 'var(--error-border)' }}>
-          <span className="status-dot" style={{ background: isAvailable ? 'var(--accent-400)' : 'var(--error-400)' }} />
-          {isAvailable ? `${hostel.available_rooms} Rooms Free` : 'Fully Booked'}
-        </div>
+        <span className={`avail-badge ${isAvailable ? 'avail-yes' : 'avail-no'}`}>
+          <span className="status-dot" />
+          {isAvailable ? `${hostel.available_rooms} Rooms Available` : 'Fully Booked'}
+        </span>
       </div>
 
-      {/* Card Details */}
-      <div className="card-content">
-        <div className="hostel-title-row">
-          <h3 className="hostel-name">{hostel.name}</h3>
-          <span className="hostel-location">
-            <MapPin size={13} /> {hostel.location}
-          </span>
-        </div>
+      <div className="hc-content">
+        <h3 className="hc-name">{hostel.name}</h3>
+        <p className="hc-location">
+          <MapPin size={13} /> {hostel.location}
+        </p>
 
         {hostel.description && (
-          <p className="hostel-desc">
-            {hostel.description.length > 90 ? `${hostel.description.substring(0, 90)}...` : hostel.description}
+          <p className="hc-desc">
+            {hostel.description.length > 95
+              ? `${hostel.description.substring(0, 95)}…`
+              : hostel.description}
           </p>
         )}
 
-        {/* Occupancy bar */}
-        <div className="occupancy-bar-container">
-          <div className="occupancy-label">
-            <span>Occupancy Rate</span>
-            <span>{occupancyPercent}% Booked</span>
+        <div className="hc-rooms-panel">
+          <div className="hc-room-stat">
+            <span className="stat-num">{hostel.available_rooms}</span>
+            <span className="stat-lbl">Available</span>
           </div>
-          <div className="occupancy-track">
-            <div className="occupancy-fill" style={{ width: `${occupancyPercent}%` }} />
+          <div className="hc-stat-divider" />
+          <div className="hc-room-stat">
+            <span className="stat-num">{hostel.total_rooms}</span>
+            <span className="stat-lbl">Total Rooms</span>
           </div>
         </div>
 
-        {/* Amenities List */}
         {amenities.length > 0 && (
-          <div className="hostel-amenity-list">
+          <div className="hc-amenities">
             {amenities.slice(0, 4).map((a) => (
-              <span key={a} className="amenity-badge">
-                {AMENITY_ICONS[a] || <BedDouble size={12} />} {a}
+              <span key={a} className="amenity-tag">
+                {AMENITY_ICONS[a] || <BedDouble size={11} />} {a}
               </span>
             ))}
             {amenities.length > 4 && (
-              <span className="amenity-badge count-tag">+{amenities.length - 4} more</span>
+              <span className="amenity-tag">+{amenities.length - 4} more</span>
             )}
           </div>
         )}
+      </div>
 
-        {/* Card Footer CTA */}
-        <div className="card-footer">
-          <span className="cta-text">Explore Rooms & Rates</span>
-          <ChevronRight size={16} className="cta-icon" />
-        </div>
+      <div className="hc-footer">
+        <span>View Rooms & Rates</span>
+        <ChevronRight size={15} className="hc-arrow" />
       </div>
 
       <style>{`
         .hostel-card {
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-          text-decoration: none;
-        }
-
-        .card-visual {
-          height: 110px;
-          position: relative;
-          padding: 1.25rem;
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .visual-badge {
-          width: 44px;
-          height: 44px;
-          border-radius: var(--radius-md);
-          background: rgba(11, 15, 23, 0.6);
-          backdrop-filter: blur(8px);
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #ffffff;
-        }
-
-        .availability-chip {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.35rem;
-          padding: 0.25rem 0.7rem;
-          border-radius: var(--radius-full);
-          font-size: 0.725rem;
-          font-weight: 600;
-          border: 1px solid;
-          backdrop-filter: blur(8px);
-        }
-
-        .card-content {
           padding: 1.35rem;
           display: flex;
           flex-direction: column;
           gap: 1rem;
+          text-decoration: none;
+          border-top: 3px solid var(--navy-primary);
+        }
+
+        .hc-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .hc-icon-box {
+          width: 40px;
+          height: 40px;
+          border-radius: var(--radius-sm);
+          background: var(--surface-blue);
+          border: 1px solid var(--border-medium);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--navy-primary);
+          flex-shrink: 0;
+        }
+
+        .avail-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          padding: 0.2rem 0.65rem;
+          border-radius: 999px;
+          font-size: 0.725rem;
+          font-weight: 700;
+        }
+
+        .avail-yes {
+          background: var(--success-bg);
+          color: var(--success-text);
+          border: 1px solid var(--success-border);
+        }
+        .avail-yes .status-dot { background: var(--success-text); }
+
+        .avail-no {
+          background: var(--error-bg);
+          color: var(--error-text);
+          border: 1px solid var(--error-border);
+        }
+        .avail-no .status-dot { background: var(--error-text); }
+
+        .hc-content {
+          display: flex;
+          flex-direction: column;
+          gap: 0.55rem;
           flex: 1;
         }
 
-        .hostel-title-row {
-          display: flex;
-          flex-direction: column;
-          gap: 0.25rem;
-        }
-
-        .hostel-name {
-          font-size: 1.15rem;
+        .hc-name {
+          font-size: 1.05rem;
           font-weight: 700;
-          color: var(--text-primary);
+          color: var(--navy-primary);
+          line-height: 1.3;
         }
 
-        .hostel-location {
+        .hc-location {
           display: flex;
           align-items: center;
           gap: 0.35rem;
           font-size: 0.825rem;
-          color: var(--slate-400);
+          color: var(--text-secondary);
         }
 
-        .hostel-desc {
-          font-size: 0.85rem;
-          color: var(--slate-400);
+        .hc-desc {
+          font-size: 0.825rem;
+          color: var(--text-secondary);
           line-height: 1.5;
         }
 
-        .occupancy-bar-container {
+        .hc-rooms-panel {
+          display: flex;
+          align-items: center;
+          gap: 1.25rem;
+          background: var(--surface-blue);
+          padding: 0.6rem 0.85rem;
+          border-radius: var(--radius-sm);
+          border: 1px solid var(--border-subtle);
+          margin-top: 0.2rem;
+        }
+
+        .hc-room-stat {
           display: flex;
           flex-direction: column;
-          gap: 0.35rem;
         }
 
-        .occupancy-label {
-          display: flex;
-          justify-content: space-between;
-          font-size: 0.75rem;
-          color: var(--slate-400);
-          font-weight: 500;
+        .stat-num {
+          font-size: 1.1rem;
+          font-weight: 700;
+          color: var(--navy-primary);
+          line-height: 1;
         }
 
-        .occupancy-track {
-          width: 100%;
-          height: 6px;
-          background: rgba(255, 255, 255, 0.06);
-          border-radius: 3px;
-          overflow: hidden;
+        .stat-lbl {
+          font-size: 0.65rem;
+          color: var(--text-secondary);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          font-weight: 600;
+          margin-top: 0.15rem;
         }
 
-        .occupancy-fill {
-          height: 100%;
-          background: linear-gradient(90deg, var(--brand-500), var(--accent-500));
-          border-radius: 3px;
+        .hc-stat-divider {
+          width: 1px;
+          height: 24px;
+          background: var(--border-medium);
+          flex-shrink: 0;
         }
 
-        .hostel-amenity-list {
+        .hc-amenities {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.4rem;
+          gap: 0.35rem;
+          margin-top: 0.2rem;
         }
 
-        .amenity-badge {
+        .amenity-tag {
           display: inline-flex;
           align-items: center;
           gap: 0.3rem;
           font-size: 0.725rem;
-          padding: 0.2rem 0.6rem;
-          background: rgba(255, 255, 255, 0.04);
+          padding: 0.15rem 0.5rem;
+          background: var(--surface-warm);
           border: 1px solid var(--border-subtle);
-          border-radius: var(--radius-sm);
-          color: var(--slate-300);
+          border-radius: 999px;
+          color: var(--text-secondary);
+          font-weight: 500;
         }
 
-        .count-tag {
-          color: var(--brand-300);
-        }
-
-        .card-footer {
+        .hc-footer {
           display: flex;
           justify-content: space-between;
           align-items: center;
           border-top: 1px solid var(--border-subtle);
-          padding-top: 0.85rem;
+          padding-top: 0.75rem;
           margin-top: auto;
-          color: var(--brand-400);
-          font-size: 0.875rem;
-          font-weight: 600;
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: var(--blue-primary);
         }
 
-        .hostel-card:hover .cta-icon {
-          transform: translateX(4px);
-        }
-        .cta-icon {
-          transition: transform var(--duration-fast);
-        }
+        .hc-arrow { transition: transform 140ms; }
+        .hostel-card:hover .hc-arrow { transform: translateX(3px); }
       `}</style>
     </Link>
   );

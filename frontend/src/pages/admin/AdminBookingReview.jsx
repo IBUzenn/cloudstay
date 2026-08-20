@@ -12,7 +12,6 @@ import {
   FileText,
   User,
   Building2,
-  Calendar,
   ExternalLink,
   ShieldCheck,
   AlertCircle
@@ -68,13 +67,13 @@ export default function AdminBookingReview() {
         <button
           className="btn btn-outline btn-sm"
           onClick={() => navigate(-1)}
-          style={{ marginBottom: '1.5rem' }}
+          style={{ marginBottom: '1.25rem' }}
         >
           <ChevronLeft size={16} /> Back to Bookings
         </button>
 
         {/* Review Header Banner */}
-        <div className="review-title-bar card fade-in">
+        <div className="review-title-bar card">
           <div>
             <div className="id-sub">RESERVATION #{booking.id}</div>
             <h1>Application Review</h1>
@@ -86,7 +85,7 @@ export default function AdminBookingReview() {
         <div className="grid-2 review-grid">
           {/* Left: Applicant Details */}
           <div className="card review-card">
-            <h3><User size={18} /> Student Applicant Details</h3>
+            <h3><User size={16} /> Student Applicant Details</h3>
             <div className="detail-row">
               <span>Full Name</span>
               <strong>{booking.student_name}</strong>
@@ -103,7 +102,7 @@ export default function AdminBookingReview() {
 
           {/* Right: Booking Specs */}
           <div className="card review-card">
-            <h3><Building2 size={18} /> Room & Rate Specifications</h3>
+            <h3><Building2 size={16} /> Room & Rate Specifications</h3>
             <div className="detail-row">
               <span>Hostel Property</span>
               <strong>{booking.hostel_name}</strong>
@@ -114,7 +113,7 @@ export default function AdminBookingReview() {
             </div>
             <div className="detail-row">
               <span>Semester Rate</span>
-              <strong style={{ color: 'var(--accent-400)' }}>
+              <strong style={{ color: 'var(--emerald-600)' }}>
                 {formatCurrency(booking.price_per_semester)}
               </strong>
             </div>
@@ -126,12 +125,12 @@ export default function AdminBookingReview() {
         </div>
 
         {/* Receipt Verification Box */}
-        <div className="card receipt-card fade-in" style={{ marginTop: '1.5rem' }}>
-          <h3><FileText size={18} /> Bank Payment Receipt Document</h3>
+        <div className="card receipt-card" style={{ marginTop: '1.25rem' }}>
+          <h3><FileText size={16} /> Bank Payment Receipt Document</h3>
           {booking.receipt_url ? (
             <div className="receipt-viewer-box">
               <div className="receipt-status-text">
-                <ShieldCheck size={18} color="var(--accent-400)" />
+                <ShieldCheck size={16} color="var(--success-text)" />
                 <span>Uploaded Payment Document Verified</span>
               </div>
               <a
@@ -152,8 +151,8 @@ export default function AdminBookingReview() {
 
         {/* Admin Review Note (if already reviewed) */}
         {booking.review_note && (
-          <div className="alert alert-info" style={{ marginTop: '1.5rem' }}>
-            <AlertCircle size={18} style={{ flexShrink: 0 }} />
+          <div className="alert alert-info" style={{ marginTop: '1.25rem' }}>
+            <AlertCircle size={16} style={{ flexShrink: 0 }} />
             <div>
               <strong>Recorded Admin Note:</strong>
               <p style={{ marginTop: '0.2rem' }}>{booking.review_note}</p>
@@ -163,7 +162,7 @@ export default function AdminBookingReview() {
 
         {/* Interactive Action Control Section */}
         {showActions && (
-          <div className="card action-control-card fade-in" style={{ marginTop: '1.5rem' }}>
+          <div className="card action-control-card" style={{ marginTop: '1.25rem' }}>
             <h3>Decision Action</h3>
             <p className="action-subtext">Review the application and receipt, then issue your decision:</p>
 
@@ -185,14 +184,14 @@ export default function AdminBookingReview() {
                 className="btn btn-success"
                 onClick={() => setActionType('approve')}
               >
-                <Check size={16} /> Approve Booking
+                <Check size={15} /> Approve Booking
               </button>
               <button
                 type="button"
                 className="btn btn-danger"
                 onClick={() => setActionType('reject')}
               >
-                <X size={16} /> Reject Application
+                <X size={15} /> Reject Application
               </button>
             </div>
           </div>
@@ -215,26 +214,22 @@ export default function AdminBookingReview() {
 
       <style>{`
         .review-title-bar {
-          padding: 1.75rem 2rem;
+          padding: 1.25rem 1.5rem;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 1.5rem;
+          margin-bottom: 1.25rem;
           flex-wrap: wrap;
           gap: 1rem;
         }
 
         .id-sub {
-          font-size: 0.75rem;
+          font-size: 0.72rem;
           font-weight: 700;
           letter-spacing: 0.08em;
-          color: var(--brand-300);
-          margin-bottom: 0.25rem;
-        }
-
-        .subtext {
-          color: var(--slate-400);
-          font-size: 0.9rem;
+          color: var(--blue-600);
+          text-transform: uppercase;
+          margin-bottom: 0.15rem;
         }
 
         .review-grid {
@@ -242,20 +237,20 @@ export default function AdminBookingReview() {
         }
 
         .review-card {
-          padding: 1.75rem;
+          padding: 1.25rem 1.5rem;
           display: flex;
           flex-direction: column;
-          gap: 1rem;
+          gap: 0.875rem;
         }
 
         .review-card h3, .receipt-card h3, .action-control-card h3 {
-          font-size: 1rem;
+          font-size: 0.95rem;
           color: var(--text-primary);
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: 0.45rem;
           border-bottom: 1px solid var(--border-subtle);
-          padding-bottom: 0.75rem;
+          padding-bottom: 0.65rem;
         }
 
         .detail-row {
@@ -266,26 +261,26 @@ export default function AdminBookingReview() {
         }
 
         .detail-row span:first-child {
-          color: var(--slate-400);
+          color: var(--text-muted);
         }
 
         .mono {
-          font-family: monospace;
+          font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
         }
 
         .receipt-card, .action-control-card {
-          padding: 1.75rem;
+          padding: 1.25rem 1.5rem;
         }
 
         .receipt-viewer-box {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          background: rgba(16, 185, 129, 0.06);
+          background: var(--success-bg);
           border: 1px solid var(--success-border);
-          border-radius: var(--radius-md);
-          padding: 1rem 1.25rem;
-          margin-top: 1rem;
+          border-radius: var(--radius-sm);
+          padding: 0.875rem 1.1rem;
+          margin-top: 0.875rem;
           flex-wrap: wrap;
           gap: 0.75rem;
         }
@@ -293,27 +288,27 @@ export default function AdminBookingReview() {
         .receipt-status-text {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: 0.45rem;
           font-size: 0.875rem;
-          color: var(--accent-400);
+          color: var(--success-text);
           font-weight: 500;
         }
 
         .no-receipt-note {
           font-size: 0.875rem;
-          color: var(--slate-400);
-          margin-top: 0.75rem;
+          color: var(--text-muted);
+          margin-top: 0.65rem;
         }
 
         .action-subtext {
-          font-size: 0.875rem;
-          color: var(--slate-400);
-          margin-top: 0.5rem;
+          font-size: 0.85rem;
+          color: var(--text-muted);
+          margin-top: 0.35rem;
         }
 
         .decision-buttons-row {
           display: flex;
-          gap: 1rem;
+          gap: 0.875rem;
         }
       `}</style>
     </div>
