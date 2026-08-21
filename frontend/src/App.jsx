@@ -7,30 +7,31 @@ import Spinner from './components/common/Spinner';
 // Public pages
 import HostelListingPage  from './pages/public/HostelListingPage';
 import HostelDetailPage   from './pages/public/HostelDetailPage';
+import RoomDetailPage     from './pages/public/RoomDetailPage';
 import NotFoundPage       from './pages/public/NotFoundPage';
 import ForbiddenPage      from './pages/public/ForbiddenPage';
-
+ 
 // Auth pages
 import LoginPage    from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
-
+ 
 // Student pages
 import StudentDashboard from './pages/student/StudentDashboard';
 import BookingForm      from './pages/student/BookingForm';
 import BookingDetail    from './pages/student/BookingDetail';
 import UploadReceiptPage from './pages/student/UploadReceiptPage';
 import ProfilePage      from './pages/student/ProfilePage';
-
+ 
 // Admin pages
 import AdminDashboard    from './pages/admin/AdminDashboard';
 import AdminBookings     from './pages/admin/AdminBookings';
 import AdminHostels      from './pages/admin/AdminHostels';
 import AdminUsers        from './pages/admin/AdminUsers';
 import AdminBookingReview from './pages/admin/AdminBookingReview';
-
+ 
 // Manager pages
 import ManagerDashboard from './pages/admin/ManagerDashboard';
-
+ 
 /** Redirects unauthenticated users to /login */
 function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
@@ -39,7 +40,7 @@ function ProtectedRoute({ children, roles }) {
   if (roles && !roles.includes(user.role)) return <Navigate to="/403" replace />;
   return children;
 }
-
+ 
 /** Redirects authenticated users away from login/register */
 function GuestRoute({ children }) {
   const { user, loading } = useAuth();
@@ -51,7 +52,7 @@ function GuestRoute({ children }) {
   }
   return children;
 }
-
+ 
 export default function App() {
   return (
     <>
@@ -61,6 +62,7 @@ export default function App() {
         <Route path="/"          element={<HostelListingPage />} />
         <Route path="/hostels"   element={<HostelListingPage />} />
         <Route path="/hostels/:id" element={<HostelDetailPage />} />
+        <Route path="/rooms/:roomId" element={<RoomDetailPage />} />
         <Route path="/403"       element={<ForbiddenPage />} />
         <Route path="*"          element={<NotFoundPage />} />
 

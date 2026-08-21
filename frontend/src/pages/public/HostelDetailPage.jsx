@@ -172,52 +172,88 @@ export default function HostelDetailPage() {
             </div>
           ) : (
             <div className="grid-3">
-              {rooms.map((room) => (
-                <div key={room.id} className="room-card card card-hover">
-                  <div className="room-card-top">
-                    <div>
-                      <span className="room-number">Room {room.room_number}</span>
-                      <span className="room-type-label">
-                        {ROOM_TYPE_LABELS[room.room_type] || room.room_type}
-                      </span>
-                    </div>
-                    <StatusBadge status={room.status} />
-                  </div>
+              {rooms.map((room) => {
+                const roomType = (room.room_type || '').toLowerCase();
+                const thumbnail =
+                  roomType === 'single'
+                    ? 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=600&q=80'
+                    : roomType === 'suite'
+                    ? 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=600&q=80'
+                    : 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=600&q=80';
 
-                  <div className="room-capacity">
-                    <Users size={13} /> Capacity: {room.capacity} student{room.capacity > 1 ? 's' : ''}
-                  </div>
-
-                  {room.description && (
-                    <p className="room-desc">{room.description}</p>
-                  )}
-
-                  <div className="room-card-footer">
-                    <div className="room-price-group">
-                      <span className="room-price">{formatCurrency(room.price_per_semester)}</span>
-                      <span className="room-price-sub">/ semester</span>
+                return (
+                  <div key={room.id} className="room-card card card-hover">
+                    {/* Room Thumbnail */}
+                    <div
+                      className="room-card-image-wrap"
+                      onClick={() => navigate(`/rooms/${room.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <img src={thumbnail} alt={`Room ${room.room_number}`} className="room-card-img" />
+                      <div className="room-card-img-badge">
+                        <StatusBadge status={room.status} />
+                      </div>
                     </div>
 
-                    {user?.role === 'student' && room.status === 'available' && (
-                      <button
-                        className="btn btn-primary btn-sm"
-                        onClick={() => navigate(`/book/${room.id}`, { state: { room, hostel } })}
-                      >
-                        Reserve
-                      </button>
-                    )}
+                    <div className="room-card-content">
+                      <div className="room-card-top">
+                        <div>
+                          <span
+                            className="room-number"
+                            onClick={() => navigate(`/rooms/${room.id}`)}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            Room {room.room_number}
+                          </span>
+                          <span className="room-type-label">
+                            {ROOM_TYPE_LABELS[room.room_type] || room.room_type}
+                          </span>
+                        </div>
+                      </div>
 
-                    {!user && room.status === 'available' && (
-                      <button
-                        className="btn btn-outline btn-sm"
-                        onClick={() => navigate('/login')}
-                      >
-                        Sign In to Book
-                      </button>
-                    )}
+                      <div className="room-capacity">
+                        <Users size={13} /> {room.capacity} Bed{room.capacity > 1 ? 's' : ''} Capacity
+                      </div>
+
+                      {/* Quick Facility Chips */}
+                      <div className="room-quick-facilities">
+                        <span className="q-fac-chip">🛏 Beds</span>
+                        <span className="q-fac-chip">📶 Wi-Fi</span>
+                        <span className="q-fac-chip">🪑 Desk</span>
+                      </div>
+
+                      {room.description && (
+                        <p className="room-desc">{room.description}</p>
+                      )}
+
+                      <div className="room-card-footer">
+                        <div className="room-price-group">
+                          <span className="room-price">{formatCurrency(room.price_per_semester)}</span>
+                          <span className="room-price-sub">/ sem</span>
+                        </div>
+
+                        <div className="room-actions">
+                          <button
+                            className="btn btn-outline btn-xs"
+                            onClick={() => navigate(`/rooms/${room.id}`)}
+                          >
+                            View Room →
+                          </button>
+
+                          {user?.role === 'student' && room.status === 'available' && (
+                            <button
+                              className="btn btn-primary btn-xs"
+                              onClick={() => navigate(`/book/${room.id}`, { state: { room, hostel } })}
+                            >
+                              Reserve
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
@@ -363,12 +399,45 @@ export default function HostelDetailPage() {
           background: var(--surface-card);
         }
 
-        /* ── Room card ──────────────────────────────────────── */
+        /* ── Enriched Room card ───────────────────────────── */
         .room-card {
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          padding: 0;
+        }
+
+        .room-card-image-wrap {
+          position: relative;
+          height: 150px;
+          width: 100%;
+          background: var(--navy-900);
+          overflow: hidden;
+        }
+
+        .room-card-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.3s ease;
+        }
+
+        .room-card-image-wrap:hover .room-card-img {
+          transform: scale(1.04);
+        }
+
+        .room-card-img-badge {
+          position: absolute;
+          top: 0.65rem;
+          right: 0.65rem;
+        }
+
+        .room-card-content {
           padding: 1.15rem;
           display: flex;
           flex-direction: column;
-          gap: 0.7rem;
+          gap: 0.65rem;
+          flex: 1;
         }
 
         .room-card-top {
@@ -379,10 +448,12 @@ export default function HostelDetailPage() {
 
         .room-number {
           display: block;
-          font-size: 1rem;
+          font-size: 1.05rem;
           font-weight: 700;
           color: var(--text-primary);
         }
+
+        .room-number:hover { color: var(--blue-600); }
 
         .room-type-label {
           display: block;
@@ -399,6 +470,22 @@ export default function HostelDetailPage() {
           color: var(--text-secondary);
         }
 
+        .room-quick-facilities {
+          display: flex;
+          gap: 0.3rem;
+          flex-wrap: wrap;
+        }
+
+        .q-fac-chip {
+          font-size: 0.7rem;
+          padding: 0.15rem 0.45rem;
+          background: var(--surface-subtle);
+          border: 1px solid var(--border-subtle);
+          border-radius: var(--radius-sm);
+          color: var(--text-muted);
+          font-weight: 500;
+        }
+
         .room-desc {
           font-size: 0.8rem;
           color: var(--text-muted);
@@ -412,11 +499,15 @@ export default function HostelDetailPage() {
           border-top: 1px solid var(--border-subtle);
           padding-top: 0.7rem;
           margin-top: auto;
+          gap: 0.5rem;
         }
 
         .room-price-group { display: flex; align-items: baseline; gap: 0.2rem; }
         .room-price { font-size: 1.05rem; font-weight: 700; color: var(--emerald-600); }
         .room-price-sub { font-size: 0.75rem; color: var(--text-muted); }
+
+        .room-actions { display: flex; gap: 0.35rem; }
+        .btn-xs { padding: 0.25rem 0.55rem; font-size: 0.75rem; }
       `}</style>
     </div>
   );
