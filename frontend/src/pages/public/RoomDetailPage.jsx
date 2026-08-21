@@ -372,7 +372,7 @@ export default function RoomDetailPage() {
                   className="btn btn-primary btn-lg w-full book-cta-btn"
                   onClick={() => navigate(`/book/${room.id}`, { state: { room, hostel } })}
                 >
-                  Book This Room <ArrowRight size={16} />
+                  Reserve This Room <ArrowRight size={16} />
                 </button>
               )}
 
@@ -505,10 +505,72 @@ export default function RoomDetailPage() {
         </div>
       )}
 
+      {/* MOBILE STICKY BOTTOM ACTION BAR */}
+      {isAvailable && (
+        <div className="mobile-sticky-bottom-bar hide-desktop">
+          <div className="sticky-bar-info">
+            <span className="sticky-price">{formatCurrency(room.price_per_semester)}</span>
+            <span className="sticky-sub">Room {room.room_number} · Available</span>
+          </div>
+          {user?.role === 'student' ? (
+            <button
+              className="btn btn-primary btn-md sticky-cta-btn"
+              onClick={() => navigate(`/book/${room.id}`, { state: { room, hostel } })}
+            >
+              Reserve This Room
+            </button>
+          ) : !user ? (
+            <button
+              className="btn btn-primary btn-md sticky-cta-btn"
+              onClick={() => navigate('/login')}
+            >
+              Sign In to Reserve
+            </button>
+          ) : null}
+        </div>
+      )}
+
       {/* COMPONENT STYLES */}
       <style>{`
         .room-detail-wrapper {
-          padding-bottom: 4rem;
+          padding-bottom: 5rem;
+        }
+
+        .mobile-sticky-bottom-bar {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: #0B1F33;
+          border-top: 1px solid #1E3A5F;
+          padding: 0.75rem 1rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          z-index: 90;
+          box-shadow: 0 -4px 12px rgba(11, 31, 51, 0.3);
+        }
+
+        .sticky-bar-info {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .sticky-price {
+          font-size: 1.15rem;
+          font-weight: 800;
+          color: var(--emerald-400, #34D399);
+        }
+
+        .sticky-sub {
+          font-size: 0.75rem;
+          color: #9FB3C8;
+        }
+
+        .sticky-cta-btn {
+          font-weight: 700;
+          padding: 0.6rem 1.25rem;
+          border-radius: var(--radius-sm);
         }
 
         .breadcrumb-bar {

@@ -89,9 +89,9 @@ export default function BookingForm() {
         </button>
 
         <div className="booking-header">
-          <h1>Confirm Room Reservation</h1>
+          <h1>Review Your Reservation</h1>
           <p className="subtext">
-            Review room specifications and select your check-in dates for semester allocation
+            Check your room details and select your semester stay dates below
           </p>
         </div>
 
@@ -128,7 +128,7 @@ export default function BookingForm() {
                 <strong>{room.capacity} Student{room.capacity > 1 ? 's' : ''}</strong>
               </div>
               <div className="spec-row">
-                <span>Status</span>
+                <span>Availability Status</span>
                 <strong style={{ color: 'var(--emerald-600)' }}>Available for Booking</strong>
               </div>
             </div>
@@ -136,7 +136,7 @@ export default function BookingForm() {
 
           {/* Right Column: Date Form */}
           <div className="card form-card">
-            <h3 style={{ marginBottom: '1rem' }}>Select Semester Duration</h3>
+            <h3 style={{ marginBottom: '1rem' }}>Select Semester Dates</h3>
 
             <form onSubmit={handleOpenConfirm} noValidate className="form-stack">
               <div className="form-group">
@@ -174,7 +174,7 @@ export default function BookingForm() {
               <div className="alert alert-info">
                 <Info size={16} style={{ flexShrink: 0 }} />
                 <span>
-                  After submitting your dates, you will be prompted to upload proof of bank payment/receipt.
+                  After creating your reservation, you will upload your bank payment receipt to complete your booking.
                 </span>
               </div>
 
@@ -183,7 +183,7 @@ export default function BookingForm() {
                 className="btn btn-primary btn-full btn-lg"
                 style={{ marginTop: '0.25rem' }}
               >
-                Review & Reserve Room
+                Reserve This Room
               </button>
             </form>
           </div>
@@ -197,27 +197,27 @@ export default function BookingForm() {
             <div className="modal-header-icon">
               <Building2 size={24} color="var(--blue-600)" />
             </div>
-            <h2>Reserve Room {room.room_number}</h2>
+            <h2>Review Your Reservation</h2>
             <p className="modal-sub">
-              <strong>{hostel.name}</strong> · {ROOM_TYPE_LABELS[room.room_type] || room.room_type}
+              <strong>{hostel.name}</strong> · Room {room.room_number} ({ROOM_TYPE_LABELS[room.room_type] || room.room_type}) · {formatCurrency(room.price_per_semester)} / semester
             </p>
 
             <div className="modal-checklist">
               <div className="checklist-item">
                 <ShieldCheck size={16} color="var(--emerald-600)" />
-                <span>Confirm that you want to reserve Room {room.room_number}</span>
+                <span>Confirm this room is the one you want</span>
               </div>
               <div className="checklist-item">
                 <ShieldCheck size={16} color="var(--emerald-600)" />
-                <span>Payment of <strong>{formatCurrency(room.price_per_semester)}</strong> must be completed according to hostel requirements</span>
+                <span>Pay the required hostel fee of <strong>{formatCurrency(room.price_per_semester)}</strong></span>
               </div>
               <div className="checklist-item">
                 <ShieldCheck size={16} color="var(--emerald-600)" />
-                <span>You will need to upload your official bank payment receipt</span>
+                <span>Upload your payment receipt</span>
               </div>
               <div className="checklist-item">
                 <ShieldCheck size={16} color="var(--emerald-600)" />
-                <span>Your booking will remain pending until verified by hostel management</span>
+                <span>Your reservation will be reviewed by management</span>
               </div>
             </div>
 
@@ -236,7 +236,7 @@ export default function BookingForm() {
                 onClick={handleConfirmReservation}
                 disabled={loading}
               >
-                {loading ? 'Reserving Room...' : 'Continue & Initialize Reservation'}
+                {loading ? 'Reserving Room...' : 'Continue Reservation'}
               </button>
             </div>
           </div>

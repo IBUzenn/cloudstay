@@ -23,7 +23,10 @@ export default function AdminBookingReview() {
   const navigate = useNavigate();
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
-  
+  const [submitting, setSubmitting] = useState(false);
+  const [actionType, setActionType] = useState(null);
+  const [reviewNote, setReviewNote] = useState('');
+  const [selectedReason, setSelectedReason] = useState('');
   const [showReceiptModal, setShowReceiptModal] = useState(false);
 
   useEffect(() => {
@@ -33,16 +36,33 @@ export default function AdminBookingReview() {
       .finally(() => setLoading(false));
   }, [id, navigate]);
 
+  const REJECTION_REASONS = [
+    'Receipt is unclear or illegible',
+    'Receipt does not match payment details',
+    'Incorrect payment amount',
+    'Other (specify below)'
+  ];
+
+  const handleReasonClick = (reason) => {
+    setSelectedReason(reason);
+    if (reason !== 'Other (specify below)') {
+      setReviewNote(reason);
+    } else {
+      setReviewNote('');
+    }
+  };
+
   const handleAction = async () => {
-    if (actionType === 'reject' && !reviewNote.trim()) {
-      toast.error('A review note is required when rejecting a booking request.');
+    const finalNote = reviewNote.trim() || selectedReason;
+    if (actionType === 'reject' && !finalNote) {
+      toast.error('Please select or enter a rejection reason.');
       return;
     }
     setSubmitting(true);
     try {
       const res = await bookingApi.updateStatus(id, { 
         status: actionType === 'approve' ? 'approved' : 'rejected',
-        reviewNote: reviewNote.trim()
+        reviewNote: finalNote
       });
       setBooking(res.data.data);
       toast.success(`Booking ${actionType === 'approve' ? 'approved' : 'rejected'} successfully.`);
@@ -172,38 +192,102 @@ export default function AdminBookingReview() {
         {/* Interactive Action Control Section */}
         {showActions && (
           <div className="card action-control-card" style={{ marginTop: '1.25rem' }}>
-            <h3>Decision Action</h3>
-            <p className="action-subtext">Review the application and receipt, then issue your decision:</p>
+            <h3>Management Review Decision</h3>
+            <p className="action-subtext">Inspect student details and payment receipt above, then select your decision:</p>
 
-            <div className="form-group" style={{ margin: '1rem 0' }}>
-              <label className="form-label" htmlFor="review-note">Admin Review Note (Optional for Approval, Required for Rejection)</label>
-              <textarea
-                id="review-note"
-                rows={3}
-                className="form-input"
-                placeholder="Enter feedback or explanation for the applicant..."
-                value={reviewNote}
-                onChange={(e) => setReviewNote(e.target.value)}
-              />
-            </div>
-
-            <div className="decision-buttons-row">
+            <div className="decision-buttons-row" style={{ margin: '1.25rem 0' }}>
               <button
                 type="button"
-                className="btn btn-success"
+                className="btn btn-success btn-lg"
+                style={{ flex: 1 }}
                 onClick={() => setActionType('approve')}
               >
-                <Check size={15} /> Approve Booking
+                <Check size={18} /> Approve Booking
               </button>
               <button
                 type="button"
-                className="btn btn-danger"
+                className="btn btn-danger btn-lg"
+                style={{ flex: 1 }}
                 onClick={() => setActionType('reject')}
               >
-                <X size={15} /> Reject Application
+                <X size={18} /> Reject Application
               </button>
             </div>
           </div>
+        )}
+
+        {/* Rejection Modal with Structured Reasons */}
+        {actionType === 'reject' && (
+          <div className="modal-backdrop" onClick={() => setActionType(null)}>
+            <div className="modal-card rejection-modal-card" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header-icon" style={{ background: '#FEF2F2', borderColor: '#FCA5A5' }}>
+                <X size={24} color="var(--red-600)" />
+              </div>
+              <h2>Reject Booking Application</h2>
+              <p className="modal-sub">
+                Please select the reason for rejecting <strong>Booking #{booking.id} ({booking.student_name})</strong>
+              </p>
+
+              <div className="rejection-reasons-list">
+                <span className="reason-label-title">Why are you rejecting this receipt?</span>
+                {REJECTION_REASONS.map((reason) => (
+                  <button
+                    key={reason}
+                    type="button"
+                    className={`reason-chip ${selectedReason === reason ? 'active' : ''}`}
+                    onClick={() => handleReasonClick(reason)}
+                  >
+                    <span className="radio-dot" /> {reason}
+                  </button>
+                ))}
+              </div>
+
+              <div className="form-group" style={{ width: '100%', marginTop: '1rem', textAlign: 'left' }}>
+                <label className="form-label" htmlFor="review-note">Review Note (Visible to Student)</label>
+                <textarea
+                  id="review-note"
+                  rows={3}
+                  className="form-input"
+                  placeholder="Provide additional details or guidance for the student..."
+                  value={reviewNote}
+                  onChange={(e) => setReviewNote(e.target.value)}
+                />
+              </div>
+
+              <div className="modal-actions" style={{ marginTop: '1.25rem' }}>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => setActionType(null)}
+                  disabled={submitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={handleAction}
+                  disabled={submitting || (!reviewNote.trim() && !selectedReason)}
+                >
+                  {submitting ? 'Rejecting...' : 'Reject Booking'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Approval Modal */}
+        {actionType === 'approve' && (
+          <ConfirmModal
+            isOpen={true}
+            title="Approve Student Booking"
+            message={`Are you sure you want to approve Booking #${booking.id} for ${booking.student_name}? This will confirm their room reservation.`}
+            confirmText="Yes, Approve Booking"
+            variant="success"
+            loading={submitting}
+            onCancel={() => setActionType(null)}
+            onConfirm={handleAction}
+          />
         )}
 
         {/* Embedded Receipt Viewing Modal */}
@@ -345,6 +429,63 @@ export default function AdminBookingReview() {
           font-size: 0.85rem;
           color: var(--text-muted);
           margin-top: 0.35rem;
+        }
+
+        .rejection-reasons-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          width: 100%;
+          text-align: left;
+        }
+
+        .reason-label-title {
+          font-size: 0.825rem;
+          font-weight: 600;
+          color: var(--navy-primary);
+          margin-bottom: 0.2rem;
+        }
+
+        .reason-chip {
+          display: flex;
+          align-items: center;
+          gap: 0.6rem;
+          padding: 0.6rem 0.85rem;
+          background: var(--surface-subtle);
+          border: 1px solid var(--border-subtle);
+          border-radius: var(--radius-sm);
+          font-size: 0.85rem;
+          color: var(--text-primary);
+          cursor: pointer;
+          transition: all 140ms ease;
+          text-align: left;
+        }
+
+        .reason-chip:hover {
+          border-color: var(--red-300);
+          background: #FEF2F2;
+        }
+
+        .reason-chip.active {
+          border-color: var(--red-500);
+          background: #FEF2F2;
+          font-weight: 600;
+          color: var(--red-700);
+        }
+
+        .radio-dot {
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          border: 2px solid var(--border-medium);
+          display: inline-block;
+          flex-shrink: 0;
+        }
+
+        .reason-chip.active .radio-dot {
+          border-color: var(--red-600);
+          background: var(--red-600);
+          box-shadow: inset 0 0 0 2px #ffffff;
         }
 
         .decision-buttons-row {

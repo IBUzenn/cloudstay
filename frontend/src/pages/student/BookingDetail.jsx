@@ -59,15 +59,32 @@ export default function BookingDetail() {
   if (!booking) return null;
 
   const canCancel = user?.role === 'student' && ['pending', 'approved'].includes(booking.status);
-  const canUpload = user?.role === 'student' && ['pending', 'rejected', 'approved'].includes(booking.status);
+  const canUpload = user?.role === 'student' && ['pending', 'rejected'].includes(booking.status);
 
-  const getStepState = (stepIndex) => {
-    if (booking.status === 'rejected' || booking.status === 'cancelled') return 'cancelled';
-    if (booking.status === 'approved' && booking.receipt_url) return 'complete';
-    if (stepIndex === 1) return 'complete'; // Created
-    if (stepIndex === 2 && booking.receipt_url) return 'complete';
-    if (stepIndex === 2 && ['pending', 'approved'].includes(booking.status)) return 'current';
-    if (stepIndex === 3 && booking.status === 'approved' && booking.receipt_url) return 'complete';
+  // Stepper progress state calculation
+  // 1: Reservation Created, 2: Payment Receipt, 3: Management Review, 4: Reservation Confirmed
+  const getStepStatus = (stepIndex) => {
+    if (booking.status === 'cancelled') return 'cancelled';
+
+    if (stepIndex === 1) return 'complete'; // Reservation Created is always complete
+
+    if (stepIndex === 2) { // Payment Receipt
+      if (booking.receipt_url) return 'complete';
+      return 'current';
+    }
+
+    if (stepIndex === 3) { // Management Review
+      if (booking.status === 'approved') return 'complete';
+      if (booking.status === 'rejected') return 'failed';
+      if (booking.receipt_url && booking.status === 'pending') return 'current';
+      return 'pending';
+    }
+
+    if (stepIndex === 4) { // Reservation Confirmed
+      if (booking.status === 'approved') return 'complete';
+      return 'pending';
+    }
+
     return 'pending';
   };
 
@@ -75,23 +92,26 @@ export default function BookingDetail() {
 
   return (
     <div className="page-wrapper">
-      <div className="container" style={{ maxWidth: 720 }}>
+      <div className="container" style={{ maxWidth: 740 }}>
         <button
           className="btn btn-outline btn-sm"
           onClick={() => navigate('/dashboard')}
-          style={{ marginBottom: '1.5rem' }}
+          style={{ marginBottom: '1.25rem' }}
         >
           <ChevronLeft size={16} /> Return to Dashboard
         </button>
 
-        {/* Post-Reservation Immediate Welcome Banner */}
+        {/* 1. Immediate Post-Reservation Welcome Callout */}
         {(justCreated || (booking.status === 'pending' && !booking.receipt_url)) && (
           <div className="alert alert-warn action-callout-banner fade-in">
             <AlertCircle size={24} style={{ flexShrink: 0, color: 'var(--amber-600)' }} />
             <div className="callout-body">
-              <strong>Reservation Initialized — Booking #{booking.id}</strong>
-              <p style={{ margin: '0.25rem 0 0.75rem' }}>
-                Your room reservation for <strong>Room {booking.room_number} ({booking.hostel_name})</strong> has been created in <strong>Awaiting Payment Verification</strong> status. Please pay your hostel fee and upload your bank receipt below.
+              <strong style={{ fontSize: '1.05rem', color: 'var(--navy-primary)' }}>
+                Reservation Created — Booking #{booking.id}
+              </strong>
+              <p style={{ margin: '0.35rem 0 0.85rem', color: 'var(--text-primary)', lineHeight: 1.45 }}>
+                Your room has been reserved temporarily for <strong>Room {booking.room_number} ({booking.hostel_name})</strong>.<br />
+                <span style={{ fontWeight: 600, color: 'var(--amber-700)' }}>Next step: Pay your hostel fee and upload your payment receipt below.</span>
               </p>
               <Link to={`/bookings/${booking.id}/upload`} className="btn btn-primary btn-sm">
                 <Upload size={14} /> Upload Payment Receipt Now
@@ -100,52 +120,81 @@ export default function BookingDetail() {
           </div>
         )}
 
-        {/* Rejected Receipt Banner */}
+        {/* 2. Rejected Receipt Needs Attention Banner */}
         {booking.status === 'rejected' && (
           <div className="alert alert-danger action-callout-banner fade-in">
             <AlertCircle size={24} style={{ flexShrink: 0, color: 'var(--red-600)' }} />
             <div className="callout-body">
-              <strong>Receipt Needs Attention</strong>
-              <p style={{ margin: '0.25rem 0 0.75rem' }}>
-                Your submitted payment receipt could not be approved by management.
-                {booking.review_note && <span className="rejection-note-inline"> Reason: "{booking.review_note}"</span>}
+              <strong style={{ fontSize: '1.05rem', color: 'var(--red-700)' }}>
+                Payment Receipt Needs Attention
+              </strong>
+              <p style={{ margin: '0.35rem 0 0.85rem', color: 'var(--text-primary)', lineHeight: 1.45 }}>
+                Your receipt could not be approved by management.<br />
+                {booking.review_note && (
+                  <span className="rejection-note-block" style={{ display: 'block', marginTop: '0.35rem', padding: '0.4rem 0.65rem', background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '4px', fontStyle: 'italic' }}>
+                    Reason: "{booking.review_note}"
+                  </span>
+                )}
+                <span style={{ display: 'block', marginTop: '0.35rem', fontWeight: 500 }}>
+                  Please upload a clearer/correct receipt to re-submit your reservation.
+                </span>
               </p>
               <Link to={`/bookings/${booking.id}/upload`} className="btn btn-danger btn-sm">
-                <Upload size={14} /> Upload Replacement Receipt
+                <Upload size={14} /> Upload New Receipt
               </Link>
             </div>
           </div>
         )}
 
-        {/* Header Title */}
+        {/* 3. Approved Booking Banner */}
+        {booking.status === 'approved' && (
+          <div className="alert alert-success action-callout-banner fade-in">
+            <CheckCircle2 size={24} style={{ flexShrink: 0, color: 'var(--emerald-600)' }} />
+            <div className="callout-body">
+              <strong style={{ fontSize: '1.05rem', color: 'var(--emerald-800)' }}>
+                ✓ Reservation Confirmed
+              </strong>
+              <p style={{ margin: '0.25rem 0 0.15rem', color: 'var(--text-primary)' }}>
+                Your payment has been verified by hostel management. Your room allocation for <strong>Room {booking.room_number} ({booking.hostel_name})</strong> is fully approved and confirmed!
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Header Title Bar */}
         <div className="booking-title-bar card fade-in">
           <div>
-            <div className="id-tag">RESERVATION #{booking.id}</div>
+            <div className="id-tag">BOOKING #{booking.id}</div>
             <h1>{booking.hostel_name}</h1>
             <p className="location-sub">
-              Room {booking.room_number} ({ROOM_TYPE_LABELS[booking.room_type] || booking.room_type})
+              Room {booking.room_number} ({ROOM_TYPE_LABELS[booking.room_type] || booking.room_type}) · {booking.hostel_location}
             </p>
           </div>
           <StatusBadge status={booking.status} />
         </div>
 
-        {/* Visual Progress Stepper */}
+        {/* Visual 4-Step Progress Stepper */}
         <div className="card stepper-card fade-in">
-          <h3 className="stepper-title">Booking & Verification Steps</h3>
+          <h3 className="stepper-title">Reservation & Verification Progress</h3>
           <div className="stepper-track">
-            <div className={`step-item ${getStepState(1)}`}>
+            <div className={`step-item ${getStepStatus(1)}`}>
               <div className="step-circle"><CheckCircle2 size={16} /></div>
-              <span className="step-label">Created</span>
+              <span className="step-label">1. Reservation Created</span>
             </div>
             <div className="step-line" />
-            <div className={`step-item ${getStepState(2)}`}>
+            <div className={`step-item ${getStepStatus(2)}`}>
               <div className="step-circle"><Upload size={16} /></div>
-              <span className="step-label">{booking.receipt_url ? 'Receipt Uploaded' : 'Upload Receipt'}</span>
+              <span className="step-label">2. Payment Receipt</span>
             </div>
             <div className="step-line" />
-            <div className={`step-item ${getStepState(3)}`}>
+            <div className={`step-item ${getStepStatus(3)}`}>
               <div className="step-circle"><ShieldCheck size={16} /></div>
-              <span className="step-label">{booking.status === 'approved' ? 'Approved' : 'Admin Review'}</span>
+              <span className="step-label">3. Management Review</span>
+            </div>
+            <div className="step-line" />
+            <div className={`step-item ${getStepStatus(4)}`}>
+              <div className="step-circle"><CheckCircle2 size={16} /></div>
+              <span className="step-label">4. Confirmed</span>
             </div>
           </div>
         </div>

@@ -72,19 +72,22 @@ export default function UploadReceiptPage() {
             <div className="success-icon-badge">
               <CheckCircle2 size={52} />
             </div>
-            <h2 style={{ fontSize: '1.4rem', color: 'var(--navy-primary)' }}>Receipt Uploaded Successfully</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '0.75rem 0 1.5rem', lineHeight: '1.5' }}>
-              Your payment receipt for <strong>Booking #{id}</strong> has been submitted for verification.<br />
-              <span style={{ display: 'inline-block', marginTop: '0.5rem', padding: '0.2rem 0.65rem', background: 'var(--amber-50)', color: 'var(--amber-700)', border: '1px solid var(--amber-200)', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 600 }}>
-                Booking status: Pending Review
+            <h2 style={{ fontSize: '1.4rem', color: 'var(--navy-primary)' }}>✓ Receipt Uploaded</h2>
+            <p style={{ color: 'var(--text-primary)', fontSize: '0.95rem', margin: '0.75rem 0 1.5rem', lineHeight: '1.5' }}>
+              Your payment receipt for <strong>Booking #{id}</strong> has been submitted successfully.<br />
+              <span style={{ display: 'inline-block', marginTop: '0.75rem', padding: '0.3rem 0.85rem', background: 'var(--amber-50)', color: 'var(--amber-800)', border: '1px solid var(--amber-300)', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 600 }}>
+                Status: Pending Review
               </span>
             </p>
+            <div className="alert alert-info" style={{ textAlign: 'left', marginBottom: '1.5rem' }}>
+              <strong>What happens next?</strong>
+              <p style={{ fontSize: '0.85rem', margin: '0.2rem 0 0' }}>
+                A hostel administrator will review your payment receipt and verify your room reservation.
+              </p>
+            </div>
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
-              <button className="btn btn-outline" onClick={() => navigate(`/bookings/${id}`)}>
+              <button className="btn btn-primary btn-full" onClick={() => navigate(`/bookings/${id}`)}>
                 View Booking Details
-              </button>
-              <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>
-                Return to Dashboard
               </button>
             </div>
           </div>
@@ -113,10 +116,15 @@ export default function UploadReceiptPage() {
         </button>
 
         <div className="upload-header">
-          <h1>Payment Receipt Upload</h1>
+          <h1>Payment Verification</h1>
           <p className="upload-subtext">
-            Upload proof of payment for Booking #{id}. PDF, JPG or PNG (Maximum {MAX_MB} MB).
+            Your reservation requires payment verification. Upload the bank or mobile money payment receipt issued after payment for Booking #{id}.
           </p>
+        </div>
+
+        <div className="specs-callout-box">
+          <span className="spec-tag">Accepted: PDF, JPG, PNG</span>
+          <span className="spec-tag">Maximum size: 10 MB</span>
         </div>
 
         <div
@@ -161,12 +169,12 @@ export default function UploadReceiptPage() {
                 <Upload size={26} />
               </div>
               <div>
-                <p className="prompt-main">Drag receipt here or click to browse</p>
-                <p className="prompt-sub">Supports PDF, JPG or PNG up to 10 MB</p>
+                <p className="prompt-main">Tap to select your receipt</p>
+                <p className="prompt-sub">or drag file here on desktop</p>
               </div>
               <button
                 type="button"
-                className="btn btn-outline btn-sm mobile-choose-btn"
+                className="btn btn-primary btn-md mobile-choose-btn"
                 onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }}
               >
                 📎 Choose Receipt
@@ -185,6 +193,9 @@ export default function UploadReceiptPage() {
             <div className="progress-track">
               <div className="progress-bar" style={{ width: `${progress}%` }} />
             </div>
+            <p style={{ fontSize: '0.775rem', color: 'var(--text-muted)', marginTop: '0.4rem', textAlign: 'center' }}>
+              Please keep this page open while your receipt is uploaded.
+            </p>
           </div>
         )}
 
@@ -194,7 +205,7 @@ export default function UploadReceiptPage() {
           onClick={handleSubmit}
           disabled={!file || loading}
         >
-          {loading ? `Uploading (${progress}%)...` : (
+          {loading ? `Uploading receipt... ${progress}%` : (
             <>
               <ShieldCheck size={16} /> Submit Receipt for Verification
             </>
@@ -211,6 +222,23 @@ export default function UploadReceiptPage() {
           color: var(--text-muted);
           font-size: 0.875rem;
           margin-top: 0.2rem;
+        }
+
+        .specs-callout-box {
+          display: flex;
+          gap: 0.75rem;
+          margin-bottom: 1rem;
+          flex-wrap: wrap;
+        }
+
+        .spec-tag {
+          font-size: 0.775rem;
+          font-weight: 600;
+          color: var(--blue-700);
+          background: var(--blue-50);
+          border: 1px solid var(--blue-200);
+          padding: 0.2rem 0.6rem;
+          border-radius: 4px;
         }
 
         .drop-zone {
