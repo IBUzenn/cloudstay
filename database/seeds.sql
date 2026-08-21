@@ -6,8 +6,8 @@
 --   mysql -u root -p cloudstay < database/seeds.sql
 --
 -- Passwords are pre-hashed with bcrypt cost=12:
---   admin123     → $2b$12$... (admin/manager accounts)
---   student123   → $2b$12$... (student accounts)
+--   Admin@1234   → $2b$12$... (admin/manager accounts)
+--   Student@1234 → $2b$12$... (student accounts)
 -- =============================================================
 
 USE cloudstay;
