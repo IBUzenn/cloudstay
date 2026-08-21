@@ -5,7 +5,7 @@ import { bookingApi } from '../../api';
 import toast from 'react-hot-toast';
 
 const ALLOWED = { 'image/jpeg': '.jpg', 'image/png': '.png', 'application/pdf': '.pdf' };
-const MAX_MB  = 5;
+const MAX_MB  = 10;
 
 export default function UploadReceiptPage() {
   const { id }     = useParams();
@@ -14,15 +14,16 @@ export default function UploadReceiptPage() {
   const [file,     setFile]     = useState(null);
   const [dragOver, setDragOver] = useState(false);
   const [loading,  setLoading]  = useState(false);
+  const [progress, setProgress] = useState(0);
   const [success,  setSuccess]  = useState(false);
 
   const handleFile = (f) => {
     if (!ALLOWED[f.type]) {
-      toast.error('Invalid file type. Only JPEG, PNG, and PDF files are accepted.');
+      toast.error("This file type isn't supported. Please upload a PDF, JPG or PNG receipt.");
       return;
     }
     if (f.size > MAX_MB * 1024 * 1024) {
-      toast.error(`File size exceeds limit. Maximum allowed size is ${MAX_MB} MB.`);
+      toast.error(`The receipt is too large. Please choose a file smaller than ${MAX_MB} MB.`);
       return;
     }
     setFile(f);
@@ -40,15 +41,25 @@ export default function UploadReceiptPage() {
       return;
     }
     setLoading(true);
+    setProgress(10);
+    
+    // Simulate upload progress steps for responsive user feedback
+    const timer1 = setTimeout(() => setProgress(45), 200);
+    const timer2 = setTimeout(() => setProgress(82), 400);
+
     try {
       const fd = new FormData();
       fd.append('receipt', file);
       await bookingApi.uploadReceipt(id, fd);
+      setProgress(100);
       setSuccess(true);
-      toast.success('Payment receipt uploaded successfully!');
+      toast.success('Receipt uploaded successfully!');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Receipt upload failed.');
+      setProgress(0);
     } finally {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
       setLoading(false);
     }
   };
@@ -59,15 +70,23 @@ export default function UploadReceiptPage() {
         <div className="container" style={{ maxWidth: 540 }}>
           <div className="card" style={{ padding: '3rem 2rem', textAlign: 'center' }}>
             <div className="success-icon-badge">
-              <CheckCircle2 size={48} />
+              <CheckCircle2 size={52} />
             </div>
-            <h2>Receipt Uploaded Successfully!</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '0.5rem 0 1.5rem' }}>
-              Your proof of payment for Booking #{id} has been submitted for university admin review.
+            <h2 style={{ fontSize: '1.4rem', color: 'var(--navy-primary)' }}>Receipt Uploaded Successfully</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '0.75rem 0 1.5rem', lineHeight: '1.5' }}>
+              Your payment receipt for <strong>Booking #{id}</strong> has been submitted for verification.<br />
+              <span style={{ display: 'inline-block', marginTop: '0.5rem', padding: '0.2rem 0.65rem', background: 'var(--amber-50)', color: 'var(--amber-700)', border: '1px solid var(--amber-200)', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 600 }}>
+                Booking status: Pending Review
+              </span>
             </p>
-            <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>
-              Return to Dashboard
-            </button>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+              <button className="btn btn-outline" onClick={() => navigate(`/bookings/${id}`)}>
+                View Booking Details
+              </button>
+              <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>
+                Return to Dashboard
+              </button>
+            </div>
           </div>
         </div>
         <style>{`
@@ -94,9 +113,9 @@ export default function UploadReceiptPage() {
         </button>
 
         <div className="upload-header">
-          <h1>Upload Payment Proof</h1>
+          <h1>Payment Receipt Upload</h1>
           <p className="upload-subtext">
-            Submit bank payment slip or receipt for Booking #{id}. Accepted formats: JPEG, PNG, PDF (max {MAX_MB}MB).
+            Upload proof of payment for Booking #{id}. PDF, JPG or PNG (Maximum {MAX_MB} MB).
           </p>
         </div>
 
@@ -119,9 +138,9 @@ export default function UploadReceiptPage() {
             <div className="file-preview-card">
               <div className="file-icon">
                 {file.type === 'application/pdf' ? (
-                  <FileText size={32} color="var(--blue-600)" />
+                  <FileText size={36} color="var(--blue-600)" />
                 ) : (
-                  <FileImage size={32} color="var(--emerald-600)" />
+                  <FileImage size={36} color="var(--emerald-600)" />
                 )}
               </div>
               <div className="file-meta">
@@ -139,15 +158,35 @@ export default function UploadReceiptPage() {
           ) : (
             <div className="drop-prompt">
               <div className="upload-icon-circle">
-                <Upload size={24} />
+                <Upload size={26} />
               </div>
               <div>
-                <p className="prompt-main">Drag & drop your receipt document here</p>
-                <p className="prompt-sub">or click anywhere to browse files</p>
+                <p className="prompt-main">Drag receipt here or click to browse</p>
+                <p className="prompt-sub">Supports PDF, JPG or PNG up to 10 MB</p>
               </div>
+              <button
+                type="button"
+                className="btn btn-outline btn-sm mobile-choose-btn"
+                onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }}
+              >
+                📎 Choose Receipt
+              </button>
             </div>
           )}
         </div>
+
+        {/* Upload Progress Bar */}
+        {loading && (
+          <div className="progress-container fade-in" style={{ marginTop: '1.25rem' }}>
+            <div className="progress-label-row">
+              <span>Uploading receipt...</span>
+              <strong>{progress}%</strong>
+            </div>
+            <div className="progress-track">
+              <div className="progress-bar" style={{ width: `${progress}%` }} />
+            </div>
+          </div>
+        )}
 
         <button
           className="btn btn-primary btn-full btn-lg"
@@ -155,9 +194,9 @@ export default function UploadReceiptPage() {
           onClick={handleSubmit}
           disabled={!file || loading}
         >
-          {loading ? 'Uploading Document...' : (
+          {loading ? `Uploading (${progress}%)...` : (
             <>
-              <ShieldCheck size={16} /> Submit Receipt Document
+              <ShieldCheck size={16} /> Submit Receipt for Verification
             </>
           )}
         </button>
@@ -256,6 +295,39 @@ export default function UploadReceiptPage() {
 
         .remove-btn {
           flex-shrink: 0;
+        }
+
+        .progress-container {
+          background: #ffffff;
+          border: 1px solid var(--border-subtle);
+          border-radius: var(--radius-sm);
+          padding: 1rem;
+        }
+
+        .progress-label-row {
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.85rem;
+          color: var(--text-primary);
+          margin-bottom: 0.5rem;
+        }
+
+        .progress-track {
+          width: 100%;
+          height: 8px;
+          background: var(--surface-subtle);
+          border-radius: 999px;
+          overflow: hidden;
+        }
+
+        .progress-bar {
+          height: 100%;
+          background: var(--blue-600);
+          transition: width 200ms ease-out;
+        }
+
+        .mobile-choose-btn {
+          margin-top: 0.5rem;
         }
       `}</style>
     </div>

@@ -32,6 +32,7 @@ export const bookingApi = {
   uploadReceipt: (id, formData)   => api.post(`/bookings/${id}/receipt`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
+  getReceiptUrl: (id)             => `/api/bookings/${id}/receipt`,
 };
 
 export const adminApi = {

@@ -129,6 +129,15 @@ export default function AdminBookings() {
                     </td>
                     <td>
                       <StatusBadge status={b.status} />
+                      {b.receipt_url ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.72rem', color: 'var(--emerald-600)', background: 'var(--emerald-50)', padding: '0.1rem 0.45rem', borderRadius: '4px', marginTop: '0.25rem' }}>
+                          <CheckCircle2 size={11} /> Receipt Uploaded
+                        </span>
+                      ) : (
+                        <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--slate-400)', marginTop: '0.15rem' }}>
+                          No receipt yet
+                        </span>
+                      )}
                     </td>
                     <td>
                       <div className="action-cell">

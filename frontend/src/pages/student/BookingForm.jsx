@@ -21,9 +21,10 @@ export default function BookingForm() {
   const hostel = state?.hostel;
 
   const today = new Date().toISOString().split('T')[0];
-  const [form, setForm]       = useState({ checkInDate: '', checkOutDate: '' });
-  const [errors, setErrors]   = useState({});
-  const [loading, setLoading] = useState(false);
+  const [form, setForm]             = useState({ checkInDate: '', checkOutDate: '' });
+  const [errors, setErrors]         = useState({});
+  const [loading, setLoading]       = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const validate = () => {
     const errs = {};
@@ -34,10 +35,14 @@ export default function BookingForm() {
     return errs;
   };
 
-  const handleSubmit = async (e) => {
+  const handleOpenConfirm = (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
+    setShowConfirm(true);
+  };
+
+  const handleConfirmReservation = async () => {
     setLoading(true);
     try {
       const res = await bookingApi.create({
@@ -45,10 +50,11 @@ export default function BookingForm() {
         checkInDate:  form.checkInDate,
         checkOutDate: form.checkOutDate,
       });
-      toast.success('Booking initialized! Upload your payment receipt to complete application.');
-      navigate(`/bookings/${res.data.data.id}`);
+      toast.success('Reservation initialized! Please upload your payment receipt.');
+      navigate(`/bookings/${res.data.data.id}`, { state: { justCreated: true } });
     } catch (err) {
       toast.error(err.response?.data?.message || 'Booking allocation failed.');
+      setShowConfirm(false);
     } finally {
       setLoading(false);
     }
@@ -132,7 +138,7 @@ export default function BookingForm() {
           <div className="card form-card">
             <h3 style={{ marginBottom: '1rem' }}>Select Semester Duration</h3>
 
-            <form onSubmit={handleSubmit} noValidate className="form-stack">
+            <form onSubmit={handleOpenConfirm} noValidate className="form-stack">
               <div className="form-group">
                 <label className="form-label" htmlFor="checkInDate">Check-in Date</label>
                 <div className="input-icon-wrapper">
@@ -175,17 +181,154 @@ export default function BookingForm() {
               <button
                 type="submit"
                 className="btn btn-primary btn-full btn-lg"
-                disabled={loading}
                 style={{ marginTop: '0.25rem' }}
               >
-                {loading ? 'Initializing Reservation...' : 'Confirm & Reserve Room'}
+                Review & Reserve Room
               </button>
             </form>
           </div>
         </div>
       </div>
 
+      {/* Reservation Confirmation Modal */}
+      {showConfirm && (
+        <div className="modal-backdrop">
+          <div className="modal-card">
+            <div className="modal-header-icon">
+              <Building2 size={24} color="var(--blue-600)" />
+            </div>
+            <h2>Reserve Room {room.room_number}</h2>
+            <p className="modal-sub">
+              <strong>{hostel.name}</strong> · {ROOM_TYPE_LABELS[room.room_type] || room.room_type}
+            </p>
+
+            <div className="modal-checklist">
+              <div className="checklist-item">
+                <ShieldCheck size={16} color="var(--emerald-600)" />
+                <span>Confirm that you want to reserve Room {room.room_number}</span>
+              </div>
+              <div className="checklist-item">
+                <ShieldCheck size={16} color="var(--emerald-600)" />
+                <span>Payment of <strong>{formatCurrency(room.price_per_semester)}</strong> must be completed according to hostel requirements</span>
+              </div>
+              <div className="checklist-item">
+                <ShieldCheck size={16} color="var(--emerald-600)" />
+                <span>You will need to upload your official bank payment receipt</span>
+              </div>
+              <div className="checklist-item">
+                <ShieldCheck size={16} color="var(--emerald-600)" />
+                <span>Your booking will remain pending until verified by hostel management</span>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => setShowConfirm(false)}
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleConfirmReservation}
+                disabled={loading}
+              >
+                {loading ? 'Reserving Room...' : 'Continue & Initialize Reservation'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`
+        .modal-backdrop {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(16, 42, 67, 0.7);
+          backdrop-filter: blur(4px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 999;
+          padding: 1rem;
+        }
+
+        .modal-card {
+          background: #ffffff;
+          border-radius: var(--radius-md);
+          max-width: 480px;
+          width: 100%;
+          padding: 1.75rem;
+          box-shadow: var(--shadow-lg);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+        }
+
+        .modal-header-icon {
+          width: 52px;
+          height: 52px;
+          border-radius: 50%;
+          background: var(--blue-50);
+          border: 1px solid var(--blue-200);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 0.875rem;
+        }
+
+        .modal-card h2 {
+          font-size: 1.35rem;
+          color: var(--navy-primary);
+        }
+
+        .modal-sub {
+          font-size: 0.875rem;
+          color: var(--text-muted);
+          margin-top: 0.2rem;
+          margin-bottom: 1.25rem;
+        }
+
+        .modal-checklist {
+          background: var(--surface-subtle);
+          border: 1px solid var(--border-subtle);
+          border-radius: var(--radius-sm);
+          padding: 1rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          text-align: left;
+          width: 100%;
+          margin-bottom: 1.5rem;
+        }
+
+        .checklist-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.6rem;
+          font-size: 0.85rem;
+          color: var(--text-primary);
+          line-height: 1.35;
+        }
+
+        .modal-actions {
+          display: flex;
+          gap: 0.75rem;
+          width: 100%;
+          justify-content: flex-end;
+        }
+
+        .modal-actions .btn {
+          flex: 1;
+        }
+
         .booking-header {
           margin-bottom: 1.5rem;
         }

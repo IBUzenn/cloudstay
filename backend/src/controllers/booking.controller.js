@@ -77,4 +77,22 @@ async function uploadReceipt(req, res, next) {
   } catch (err) { next(err); }
 }
 
-module.exports = { create, getMyBookings, getById, getAll, updateStatus, cancel, uploadReceipt };
+async function getReceipt(req, res, next) {
+  try {
+    const booking = await bookingService.findById(parseInt(req.params.id, 10));
+    if (req.user.role === 'student' && booking.student_id !== req.user.userId) {
+      return next(new AppError('Access denied.', 403));
+    }
+    if (!booking.receipt_url) {
+      return next(new AppError('No payment receipt has been submitted yet.', 404));
+    }
+
+    const { stream, contentType, contentLength } = await uploadService.getReceiptStream(booking.receipt_url);
+    res.setHeader('Content-Type', contentType);
+    if (contentLength) res.setHeader('Content-Length', contentLength);
+    res.setHeader('Content-Disposition', 'inline');
+    stream.pipe(res);
+  } catch (err) { next(err); }
+}
+
+module.exports = { create, getMyBookings, getById, getAll, updateStatus, cancel, uploadReceipt, getReceipt };

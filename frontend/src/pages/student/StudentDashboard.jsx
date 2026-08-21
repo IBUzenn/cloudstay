@@ -20,7 +20,7 @@ export default function StudentDashboard() {
   }, []);
 
   const actionRequiredBooking = bookings.find(
-    (b) => b.status === 'approved' && !b.receipt_url
+    (b) => (b.status === 'pending' && !b.receipt_url) || b.status === 'rejected'
   );
 
   return (
@@ -50,17 +50,22 @@ export default function StudentDashboard() {
 
         {/* Action Required Alert Banner */}
         {actionRequiredBooking && (
-          <div className="alert alert-warn action-banner">
+          <div className={`alert ${actionRequiredBooking.status === 'rejected' ? 'alert-danger' : 'alert-warn'} action-banner`}>
             <AlertTriangle size={20} style={{ flexShrink: 0 }} />
             <div className="action-banner-content">
-              <strong>Payment Verification Needed</strong>
+              <strong>
+                {actionRequiredBooking.status === 'rejected' 
+                  ? 'Payment Receipt Rejected — Action Required'
+                  : 'Payment Verification Pending — Action Required'}
+              </strong>
               <p>
-                Your room allocation for <strong>Room {actionRequiredBooking.room_number} ({actionRequiredBooking.hostel_name})</strong> is approved.
-                Please upload your payment receipt to complete your booking.
+                {actionRequiredBooking.status === 'rejected'
+                  ? `Your payment receipt for Room ${actionRequiredBooking.room_number} (${actionRequiredBooking.hostel_name}) was not approved${actionRequiredBooking.review_note ? `: "${actionRequiredBooking.review_note}"` : ''}. Please upload a replacement receipt.`
+                  : `Your room reservation for Room ${actionRequiredBooking.room_number} (${actionRequiredBooking.hostel_name}) is created. Please upload your payment receipt to complete verification.`}
               </p>
             </div>
             <Link to={`/bookings/${actionRequiredBooking.id}/upload`} className="btn btn-sm action-upload-btn">
-              <Upload size={14} /> Upload Receipt
+              <Upload size={14} /> {actionRequiredBooking.status === 'rejected' ? 'Upload Replacement' : 'Upload Receipt'}
             </Link>
           </div>
         )}
@@ -107,15 +112,22 @@ export default function StudentDashboard() {
                     </td>
                     <td className="date-cell">{formatDate(b.check_in_date)}</td>
                     <td className="price-cell">{formatCurrency(b.price_per_semester)}</td>
-                    <td><StatusBadge status={b.status} /></td>
+                    <td>
+                      <StatusBadge status={b.status} />
+                      {b.status === 'pending' && b.receipt_url && (
+                        <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--amber-700)', marginTop: '0.15rem' }}>
+                          ✓ Receipt Under Review
+                        </span>
+                      )}
+                    </td>
                     <td>
                       <div className="row-actions">
                         <Link to={`/bookings/${b.id}`} className="btn btn-outline btn-sm">
                           <Eye size={14} /> Details
                         </Link>
-                        {b.status === 'approved' && !b.receipt_url && (
+                        {['pending', 'rejected'].includes(b.status) && (
                           <Link to={`/bookings/${b.id}/upload`} className="btn btn-primary btn-sm">
-                            <Upload size={14} /> Upload Receipt
+                            <Upload size={14} /> {b.receipt_url ? 'Replace' : 'Upload Receipt'}
                           </Link>
                         )}
                       </div>

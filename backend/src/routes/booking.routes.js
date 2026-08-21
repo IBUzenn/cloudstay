@@ -16,6 +16,7 @@ router.post('/:id/receipt', authenticate, requireRole(['student']), uploadSingle
 
 // Student + Admin/Manager
 router.get('/:id',          authenticate, ctrl.getById);
+router.get('/:id/receipt',  authenticate, ctrl.getReceipt);
 
 // Admin + Manager routes
 router.get('/',             authenticate, requireRole(['admin','manager']),                   ctrl.getAll);

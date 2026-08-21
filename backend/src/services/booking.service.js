@@ -108,9 +108,9 @@ async function updateStatus(bookingId, newStatus, reviewedBy, reviewNote) {
     if (!booking) throw new AppError('Booking not found.', 404);
 
     const validTransitions = {
-      approved:  ['pending'],
+      approved:  ['pending', 'rejected'],
       rejected:  ['pending'],
-      cancelled: ['pending', 'approved'],
+      cancelled: ['pending', 'approved', 'rejected'],
     };
     if (!validTransitions[newStatus]?.includes(booking.status)) {
       throw new AppError(
@@ -150,7 +150,13 @@ async function attachReceipt(bookingId, studentId, receiptUrl) {
   if (booking.student_id !== studentId)  throw new AppError('Access denied.', 403);
   if (booking.status === 'cancelled')    throw new AppError('Cannot upload receipt for a cancelled booking.', 400);
 
-  await pool.query('UPDATE bookings SET receipt_url = ? WHERE id = ?', [receiptUrl, bookingId]);
+  // Update receipt and reset status to pending for admin verification
+  await pool.query(
+    `UPDATE bookings 
+     SET receipt_url = ?, status = 'pending', review_note = NULL, reviewed_at = NULL 
+     WHERE id = ?`, 
+    [receiptUrl, bookingId]
+  );
   return findById(bookingId);
 }
 

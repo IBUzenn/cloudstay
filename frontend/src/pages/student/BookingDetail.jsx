@@ -30,6 +30,10 @@ export default function BookingDetail() {
   const [cancelling, setCancelling] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  const location = useLocation();
+  const justCreated = location.state?.justCreated;
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+
   useEffect(() => {
     bookingApi.getById(id)
       .then((res) => setBooking(res.data.data))
@@ -55,29 +59,63 @@ export default function BookingDetail() {
   if (!booking) return null;
 
   const canCancel = user?.role === 'student' && ['pending', 'approved'].includes(booking.status);
-  const canUpload = user?.role === 'student' && booking.status === 'approved' && !booking.receipt_url;
+  const canUpload = user?.role === 'student' && ['pending', 'rejected', 'approved'].includes(booking.status);
 
-  // Visual status stepper helper
   const getStepState = (stepIndex) => {
     if (booking.status === 'rejected' || booking.status === 'cancelled') return 'cancelled';
     if (booking.status === 'approved' && booking.receipt_url) return 'complete';
     if (stepIndex === 1) return 'complete'; // Created
     if (stepIndex === 2 && booking.receipt_url) return 'complete';
-    if (stepIndex === 2 && booking.status === 'approved') return 'current';
+    if (stepIndex === 2 && ['pending', 'approved'].includes(booking.status)) return 'current';
     if (stepIndex === 3 && booking.status === 'approved' && booking.receipt_url) return 'complete';
     return 'pending';
   };
+
+  const receiptUrl = bookingApi.getReceiptUrl(booking.id);
 
   return (
     <div className="page-wrapper">
       <div className="container" style={{ maxWidth: 720 }}>
         <button
           className="btn btn-outline btn-sm"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/dashboard')}
           style={{ marginBottom: '1.5rem' }}
         >
-          <ChevronLeft size={16} /> Back
+          <ChevronLeft size={16} /> Return to Dashboard
         </button>
+
+        {/* Post-Reservation Immediate Welcome Banner */}
+        {(justCreated || (booking.status === 'pending' && !booking.receipt_url)) && (
+          <div className="alert alert-warn action-callout-banner fade-in">
+            <AlertCircle size={24} style={{ flexShrink: 0, color: 'var(--amber-600)' }} />
+            <div className="callout-body">
+              <strong>Reservation Initialized — Booking #{booking.id}</strong>
+              <p style={{ margin: '0.25rem 0 0.75rem' }}>
+                Your room reservation for <strong>Room {booking.room_number} ({booking.hostel_name})</strong> has been created in <strong>Awaiting Payment Verification</strong> status. Please pay your hostel fee and upload your bank receipt below.
+              </p>
+              <Link to={`/bookings/${booking.id}/upload`} className="btn btn-primary btn-sm">
+                <Upload size={14} /> Upload Payment Receipt Now
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Rejected Receipt Banner */}
+        {booking.status === 'rejected' && (
+          <div className="alert alert-danger action-callout-banner fade-in">
+            <AlertCircle size={24} style={{ flexShrink: 0, color: 'var(--red-600)' }} />
+            <div className="callout-body">
+              <strong>Receipt Needs Attention</strong>
+              <p style={{ margin: '0.25rem 0 0.75rem' }}>
+                Your submitted payment receipt could not be approved by management.
+                {booking.review_note && <span className="rejection-note-inline"> Reason: "{booking.review_note}"</span>}
+              </p>
+              <Link to={`/bookings/${booking.id}/upload`} className="btn btn-danger btn-sm">
+                <Upload size={14} /> Upload Replacement Receipt
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Header Title */}
         <div className="booking-title-bar card fade-in">
@@ -93,7 +131,7 @@ export default function BookingDetail() {
 
         {/* Visual Progress Stepper */}
         <div className="card stepper-card fade-in">
-          <h3 className="stepper-title">Booking Progress</h3>
+          <h3 className="stepper-title">Booking & Verification Steps</h3>
           <div className="stepper-track">
             <div className={`step-item ${getStepState(1)}`}>
               <div className="step-circle"><CheckCircle2 size={16} /></div>
@@ -102,12 +140,12 @@ export default function BookingDetail() {
             <div className="step-line" />
             <div className={`step-item ${getStepState(2)}`}>
               <div className="step-circle"><Upload size={16} /></div>
-              <span className="step-label">Receipt</span>
+              <span className="step-label">{booking.receipt_url ? 'Receipt Uploaded' : 'Upload Receipt'}</span>
             </div>
             <div className="step-line" />
             <div className={`step-item ${getStepState(3)}`}>
               <div className="step-circle"><ShieldCheck size={16} /></div>
-              <span className="step-label">Approval</span>
+              <span className="step-label">{booking.status === 'approved' ? 'Approved' : 'Admin Review'}</span>
             </div>
           </div>
         </div>
@@ -159,30 +197,46 @@ export default function BookingDetail() {
             {booking.receipt_url ? (
               <div className="receipt-box">
                 <div className="receipt-info">
-                  <CheckCircle2 size={18} color="var(--success-text)" />
-                  <span>Payment receipt has been uploaded</span>
+                  <CheckCircle2 size={18} color="var(--emerald-600)" />
+                  <div>
+                    <strong>Payment Receipt Submitted</strong>
+                    <p style={{ fontSize: '0.775rem', color: 'var(--text-muted)', margin: 0 }}>
+                      Status: {booking.status === 'approved' ? 'Verified & Approved' : 'Under Management Review'}
+                    </p>
+                  </div>
                 </div>
-                <a
-                  href={booking.receipt_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-outline btn-sm"
-                >
-                  <ExternalLink size={14} /> View Receipt Document
-                </a>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm"
+                    onClick={() => setShowReceiptModal(true)}
+                  >
+                    <ExternalLink size={14} /> View Receipt
+                  </button>
+                  {canUpload && (
+                    <Link to={`/bookings/${booking.id}/upload`} className="btn btn-primary btn-sm">
+                      <Upload size={14} /> Replace
+                    </Link>
+                  )}
+                </div>
               </div>
             ) : (
-              <p className="no-receipt-text">
-                {booking.status === 'approved'
-                  ? 'Your booking is approved! Please upload your payment receipt to complete allocation.'
-                  : 'No payment receipt uploaded yet.'}
-              </p>
+              <div className="no-receipt-box">
+                <p className="no-receipt-text">
+                  No payment receipt has been submitted yet for this reservation.
+                </p>
+                {canUpload && (
+                  <Link to={`/bookings/${booking.id}/upload`} className="btn btn-primary btn-sm" style={{ marginTop: '0.5rem' }}>
+                    <Upload size={14} /> Upload Payment Receipt
+                  </Link>
+                )}
+              </div>
             )}
           </div>
 
           {/* Admin Review Note */}
-          {booking.review_note && (
-            <div className="alert alert-warn">
+          {booking.review_note && booking.status !== 'rejected' && (
+            <div className="alert alert-info">
               <AlertCircle size={18} style={{ flexShrink: 0 }} />
               <div>
                 <strong>Admin Review Note:</strong>
@@ -193,7 +247,7 @@ export default function BookingDetail() {
 
           {/* Action Buttons */}
           <div className="actions-bar">
-            {canUpload && (
+            {canUpload && !booking.receipt_url && (
               <Link to={`/bookings/${booking.id}/upload`} className="btn btn-primary">
                 <Upload size={16} /> Upload Payment Receipt
               </Link>
@@ -206,6 +260,38 @@ export default function BookingDetail() {
           </div>
         </div>
       </div>
+
+      {/* Embedded Receipt Viewing Modal */}
+      {showReceiptModal && (
+        <div className="modal-backdrop" onClick={() => setShowReceiptModal(false)}>
+          <div className="modal-card receipt-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-top-bar">
+              <h3>Payment Receipt — Booking #{booking.id}</h3>
+              <button className="btn-close" onClick={() => setShowReceiptModal(false)}>✕</button>
+            </div>
+            <div className="receipt-preview-container">
+              <iframe
+                src={receiptUrl}
+                title={`Receipt for Booking #${booking.id}`}
+                className="receipt-iframe"
+              />
+            </div>
+            <div className="modal-footer-bar">
+              <a
+                href={receiptUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-outline btn-sm"
+              >
+                <ExternalLink size={14} /> Open in New Tab
+              </a>
+              <button className="btn btn-primary btn-sm" onClick={() => setShowReceiptModal(false)}>
+                Close Viewer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showConfirm && (
         <ConfirmModal
@@ -372,10 +458,114 @@ export default function BookingDetail() {
           color: var(--text-muted);
         }
 
-        .actions-bar {
+        .action-callout-banner {
+          margin-bottom: 1.25rem;
           display: flex;
-          gap: 0.875rem;
-          margin-top: 0.25rem;
+          align-items: flex-start;
+          gap: 1rem;
+          padding: 1.25rem 1.5rem;
+          border-radius: var(--radius-md);
+        }
+
+        .callout-body {
+          flex: 1;
+        }
+
+        .rejection-note-inline {
+          font-style: italic;
+          font-weight: 500;
+        }
+
+        .no-receipt-box {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.5rem;
+        }
+
+        .modal-backdrop {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(16, 42, 67, 0.75);
+          backdrop-filter: blur(4px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          padding: 1rem;
+        }
+
+        .receipt-modal-card {
+          background: #ffffff;
+          border-radius: var(--radius-md);
+          max-width: 720px;
+          width: 100%;
+          height: 80vh;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          box-shadow: var(--shadow-lg);
+        }
+
+        .modal-top-bar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1rem 1.25rem;
+          border-bottom: 1px solid var(--border-subtle);
+          background: var(--surface-subtle);
+        }
+
+        .modal-top-bar h3 {
+          font-size: 1rem;
+          font-weight: 600;
+          color: var(--navy-primary);
+        }
+
+        .btn-close {
+          background: none;
+          border: none;
+          font-size: 1.2rem;
+          cursor: pointer;
+          color: var(--text-muted);
+          padding: 0.2rem 0.5rem;
+        }
+
+        .receipt-preview-container {
+          flex: 1;
+          background: #f1f5f9;
+          position: relative;
+        }
+
+        .receipt-iframe {
+          width: 100%;
+          height: 100%;
+          border: none;
+        }
+
+        .modal-footer-bar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.875rem 1.25rem;
+          border-top: 1px solid var(--border-subtle);
+          background: #ffffff;
+        }
+
+        @media (max-width: 640px) {
+          .action-callout-banner {
+            flex-direction: column;
+          }
+          .receipt-box {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          .receipt-modal-card {
+            height: 90vh;
+          }
         }
       `}</style>
     </div>

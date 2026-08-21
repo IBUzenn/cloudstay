@@ -24,9 +24,7 @@ export default function AdminBookingReview() {
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  const [actionType, setActionType] = useState(null); // 'approve' | 'reject'
-  const [reviewNote, setReviewNote] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
 
   useEffect(() => {
     bookingApi.getById(id)
@@ -60,6 +58,7 @@ export default function AdminBookingReview() {
   if (!booking) return null;
 
   const showActions = booking.status === 'pending';
+  const receiptUrl = bookingApi.getReceiptUrl(booking.id);
 
   return (
     <div className="page-wrapper">
@@ -77,7 +76,7 @@ export default function AdminBookingReview() {
           <div>
             <div className="id-sub">RESERVATION #{booking.id}</div>
             <h1>Application Review</h1>
-            <p className="subtext">Verify applicant details and issue room allocation approval</p>
+            <p className="subtext">Verify student details, payment receipt, and issue room allocation approval</p>
           </div>
           <StatusBadge status={booking.status} />
         </div>
@@ -92,7 +91,7 @@ export default function AdminBookingReview() {
             </div>
             <div className="detail-row">
               <span>Student ID</span>
-              <strong className="mono">{booking.student_id || 'STU-OFFICIAL'}</strong>
+              <strong className="mono">{booking.student_number || booking.student_id || 'STU-OFFICIAL'}</strong>
             </div>
             <div className="detail-row">
               <span>Email Address</span>
@@ -130,22 +129,32 @@ export default function AdminBookingReview() {
           {booking.receipt_url ? (
             <div className="receipt-viewer-box">
               <div className="receipt-status-text">
-                <ShieldCheck size={16} color="var(--success-text)" />
-                <span>Uploaded Payment Document Verified</span>
+                <ShieldCheck size={18} color="var(--emerald-600)" />
+                <div>
+                  <strong>Uploaded Payment Receipt Document</strong>
+                  <p style={{ fontSize: '0.775rem', color: 'var(--text-muted)', margin: 0 }}>
+                    Submitted by applicant for management verification
+                  </p>
+                </div>
               </div>
-              <a
-                href={booking.receipt_url}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
                 className="btn btn-outline btn-sm"
+                onClick={() => setShowReceiptModal(true)}
               >
                 <ExternalLink size={14} /> Open Receipt Document
-              </a>
+              </button>
             </div>
           ) : (
-            <p className="no-receipt-note">
-              No payment receipt uploaded by applicant yet.
-            </p>
+            <div className="no-receipt-alert alert alert-warn" style={{ marginTop: '0.875rem' }}>
+              <AlertCircle size={18} style={{ flexShrink: 0 }} />
+              <div>
+                <strong>No Payment Receipt Submitted Yet</strong>
+                <p style={{ fontSize: '0.825rem', marginTop: '0.15rem' }}>
+                  The student has initialized this reservation but has not uploaded proof of bank payment.
+                </p>
+              </div>
+            </div>
           )}
         </div>
 
@@ -154,7 +163,7 @@ export default function AdminBookingReview() {
           <div className="alert alert-info" style={{ marginTop: '1.25rem' }}>
             <AlertCircle size={16} style={{ flexShrink: 0 }} />
             <div>
-              <strong>Recorded Admin Note:</strong>
+              <strong>Recorded Admin Review Note:</strong>
               <p style={{ marginTop: '0.2rem' }}>{booking.review_note}</p>
             </div>
           </div>
@@ -193,6 +202,38 @@ export default function AdminBookingReview() {
               >
                 <X size={15} /> Reject Application
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Embedded Receipt Viewing Modal */}
+        {showReceiptModal && (
+          <div className="modal-backdrop" onClick={() => setShowReceiptModal(false)}>
+            <div className="modal-card receipt-modal-card" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-top-bar">
+                <h3>Payment Receipt — Booking #{booking.id} ({booking.student_name})</h3>
+                <button className="btn-close" onClick={() => setShowReceiptModal(false)}>✕</button>
+              </div>
+              <div className="receipt-preview-container">
+                <iframe
+                  src={receiptUrl}
+                  title={`Receipt for Booking #${booking.id}`}
+                  className="receipt-iframe"
+                />
+              </div>
+              <div className="modal-footer-bar">
+                <a
+                  href={receiptUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-outline btn-sm"
+                >
+                  <ExternalLink size={14} /> Open in New Window
+                </a>
+                <button className="btn btn-primary btn-sm" onClick={() => setShowReceiptModal(false)}>
+                  Close Viewer
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -309,6 +350,88 @@ export default function AdminBookingReview() {
         .decision-buttons-row {
           display: flex;
           gap: 0.875rem;
+        }
+
+        .modal-backdrop {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(16, 42, 67, 0.75);
+          backdrop-filter: blur(4px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          padding: 1rem;
+        }
+
+        .receipt-modal-card {
+          background: #ffffff;
+          border-radius: var(--radius-md);
+          max-width: 800px;
+          width: 100%;
+          height: 82vh;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          box-shadow: var(--shadow-lg);
+        }
+
+        .modal-top-bar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1rem 1.25rem;
+          border-bottom: 1px solid var(--border-subtle);
+          background: var(--surface-subtle);
+        }
+
+        .modal-top-bar h3 {
+          font-size: 1rem;
+          font-weight: 600;
+          color: var(--navy-primary);
+        }
+
+        .btn-close {
+          background: none;
+          border: none;
+          font-size: 1.2rem;
+          cursor: pointer;
+          color: var(--text-muted);
+          padding: 0.2rem 0.5rem;
+        }
+
+        .receipt-preview-container {
+          flex: 1;
+          background: #f1f5f9;
+          position: relative;
+        }
+
+        .receipt-iframe {
+          width: 100%;
+          height: 100%;
+          border: none;
+        }
+
+        .modal-footer-bar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.875rem 1.25rem;
+          border-top: 1px solid var(--border-subtle);
+          background: #ffffff;
+        }
+
+        @media (max-width: 640px) {
+          .receipt-viewer-box {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          .receipt-modal-card {
+            height: 90vh;
+          }
         }
       `}</style>
     </div>
